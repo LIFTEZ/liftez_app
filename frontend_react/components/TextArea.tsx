@@ -1,23 +1,43 @@
-import React, { useEffect,useState,useRef, use } from 'react';
+import React, { useEffect,useState,useRef, useLayoutEffect } from 'react';
 import {View, Text, TextInput,Button, TouchableOpacity, GestureResponderEvent, Keyboard, KeyboardEvent, StyleSheet, Dimensions, ScrollView, 
 InputAccessoryView, PointerEvent, TouchableWithoutFeedback} from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { MaterialIcons } from '@expo/vector-icons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import {Route, useNavigation} from '@react-navigation/native'
+import { RootStackParamList } from '../src/types';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-
-const STORAGE_KEY = 'inputValue'
+//const STORAGE_KEY = 'inputValue'
 const inputAccessoryViewID = 'uniqueID';
 //get the height property from dimensions
 const { height: screenHeight } = Dimensions.get('window'); // Get initial screen height
 
-export default function TextArea(){
+interface RouteProps {
+    STORAGE_KEY: string  
+}
 
-    
+// converting to arrow function for passing parameters
+const TextArea = ({STORAGE_KEY}: RouteProps) => {
+
+    // SEE WHICH STORAGE KEYS EXIST
+    const listAllKeys = async () => {
+        try {
+          const keys = await AsyncStorage.getAllKeys();
+          console.info("Stored keys:", keys);
+          return keys;
+        } catch (error) {
+          console.error("Failed to fetch keys", error);
+        }
+      };
+
+    listAllKeys()
     //RETURN FROM EATING
     /**
-     *
+     * NOTE:
+     * still might be some inconsistency with the scrolling not sure
+     * also very bad bouncing when using the space bar alot
      * 
      * 
      * FUTURE THINGS:
@@ -44,7 +64,8 @@ export default function TextArea(){
      * RESOLVED - Without height set on TextInput I can't scroll it while its focused, but I can scroll the scrollview without autofocusing
      * RESOLVED - With height set on TextInput I can scroll it while its focused, but keyboard dismiss clips the text and scrolling while the TextInput is not focused
      *   causes it to autofocus so I can't freely scroll the scrollview
-     * 
+     * RESOLVED - On focus with nothing saved causes the scrollview to scroll to bottom for some reason causing the caret to go above the header
+     *              -just had to adjust the extrascrollheight on scrollview and the inputHeight buffer
      * 
      * 
      */
@@ -89,7 +110,7 @@ export default function TextArea(){
     const scrollViewRef = useRef<any>(null); // For KeyboardAwareScrollView inner ref
 
 
-
+    const navigation = useNavigation()
 
     /** CORE COMPONENT LOGIC //////////////////////////////////////////////////////////////////////
      * 
@@ -130,6 +151,8 @@ export default function TextArea(){
           const jsonValue = JSON.stringify(value);
           console.log(jsonValue)
           await AsyncStorage.setItem(key, jsonValue);
+    
+        
         } catch (error) {
           console.error("Error saving data", error);
         }
@@ -168,6 +191,10 @@ export default function TextArea(){
     
     //  set the text onChangeText and store the data
     const setTextData = (newText: string) =>{
+        // remove existing storage key
+        if(newText == ''){
+            resetData(STORAGE_KEY)
+        }
         storeData(STORAGE_KEY, {input: newText})
         getData(STORAGE_KEY).then((data) => {
             if (data) {
@@ -180,16 +207,24 @@ export default function TextArea(){
 
 
     // DONE BUTTON FUNCTION, STORE INPUT AS ASYNCSTORAGE KEY ITEM
-      const onPress = (e: GestureResponderEvent) =>{
-        const textInput = inputValue //input value is the useState value from setText()
-        // inputRef.current.blur() to force focus off
-        if(textInput == '')
-          return
-        
-        setIsVisible(false) //hide done button
-        //setFocus(false) //remove focus from TextInput
-        inputRef.current?.blur() //force focus off from TextInput
-        Keyboard.dismiss() //dismiss keyboard
+      const onPress = () =>{
+        console.log('this button was pressed')
+        getData(STORAGE_KEY).then((data) => {
+            if (data) {
+              // setFocus(false)
+              if(data?.input){
+                console.log('input value from button press log:', data.input)
+                setIsVisible(false) //hide done button
+                inputRef.current?.blur() //force focus off from TextInput
+                Keyboard.dismiss() //dismiss keyboard
+              }  
+            }
+            else{
+              console.log('{TextArea.tsx from Done btn press says} no saved data exists')
+              return
+            }
+          });
+      
       }
 
     // CLEAR BUTTON FUNCTION, RESET ASYNCSTORAGE KEY
@@ -336,7 +371,7 @@ export default function TextArea(){
             }  
           }
           else{
-            console.log('saved data does not exist')
+            console.log('{TextArea.tsx from initial load says} saved data does not exist')
             setFocus(true)
           }
         });
@@ -359,16 +394,36 @@ export default function TextArea(){
         }
     },[isScrolling])
 
+    // CONDITIONAL RENDERING FOR NAVIGATOR HEADER
+    useLayoutEffect(() => {
 
-   
+        navigation.setOptions({
+          headerRight: () => (
+            <View className='flex'>
+                <View className='flex flex-row'>
+                    <TouchableOpacity className='' onPress={onReset}>
+                    <Text className='text-xl'>Clear</Text>
+                    </TouchableOpacity>
+                { isVisible ? 
+                <TouchableOpacity className='' onPress={onPress}>
+                    <Text className='text-blue-500 text-xl ml-6'>Done</Text>
+                </TouchableOpacity> : null
+                }
+                </View>
+            </View>
+          ),
+          title: STORAGE_KEY.toUpperCase()
+        });
+      }, [isVisible, navigation]); // Re-run when isVisible changes
 
 
 
     return (
-        <View className='w-full h-full bg-red-500'>
-                <View className='flex flex-row justify-between  p-4'>
+        <View className='w-full h-full bg-slate-500'>
+                {/*THIS RENDERS FROM THE HEADER NOW  VIA USELAYOUTEFFECT*/}
+                {/* <View className='flex flex-row justify-between  p-4'>
                     <View className='flex justify-center'>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigation.goBack()}>
                             <View className='flex flex-row '>
                             <Text className='text-lg'>←</Text>
                             <Text className='text-xl'> Back</Text>
@@ -388,7 +443,7 @@ export default function TextArea(){
                         </View>
                     </View>
                    
-                </View>
+                </View> */}
 
          
                 
@@ -396,7 +451,7 @@ export default function TextArea(){
             style={styles.container}>
                 <KeyboardAwareScrollView
                 innerRef={(ref) => { scrollViewRef.current = ref; }}
-                extraScrollHeight={40} // Buffer for status bar/toolbars—adjust to avoid clipping
+                extraScrollHeight={-20} // Buffer for status bar/toolbars—adjust to avoid clipping
                 keyboardDismissMode="interactive" // Keeps swipe-down dismissal
                 keyboardShouldPersistTaps="handled" // Taps don't dismiss unless intended
                  onScrollBeginDrag={() => setIsScrolling(true)}
@@ -415,7 +470,7 @@ export default function TextArea(){
                             ref={inputRef}
                             className=''
                             // style={[styles.input,{fontSize, lineHeight,height: isEditing ? inputHeight : undefined, minHeight: !isEditing ? inputMinHeight : undefined }]}
-                            style={[styles.input,{fontSize, lineHeight, height:keyboardVisibility ? inputHeight : 'auto'}]}
+                            style={[styles.input,{fontSize, lineHeight, height:keyboardVisibility ? inputHeight : '100%'}]}
                             textAlignVertical="center"
                             autoFocus={keyboardVisibility ? true : false}
                             selectionColor={'#52eb34'} 
@@ -435,7 +490,7 @@ export default function TextArea(){
                             ref={inputRef}
                             className='text-3xl'
                             // style={[styles.input,{fontSize, lineHeight,height: isEditing ? inputHeight : undefined, minHeight: !isEditing ? inputMinHeight : undefined }]}
-                            style={[styles.input,{fontSize, lineHeight, height:keyboardVisibility ? inputHeight : 'auto'}]}
+                            style={[styles.input,{fontSize, lineHeight, height:keyboardVisibility ? inputHeight : '100%'}]}
                             textAlignVertical="center"
                             autoFocus={true}
                             selectionColor={'#52eb34'} 
@@ -470,6 +525,8 @@ export default function TextArea(){
         </View>
     )
 }
+
+export default TextArea;
 
 const styles = StyleSheet.create({
     container:{
