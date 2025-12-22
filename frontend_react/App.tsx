@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, {useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar'
 import { StyleSheet, Text, View, TextInput} from 'react-native';
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
@@ -7,30 +7,33 @@ import TextArea from './components/TextArea';
 import { NavigationContainer } from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import AppNavigator from './src/navigation/navigator'
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ThemeProvider, useTheme } from './src/ThemeContext';
 import "./global.css"
 
+// Sub-component to use the hook for dynamic styling
+function ThemedSafeArea() {
+  //theme context
+  const { themeType } = useTheme(); // Access theme here (inside provider)
+
+  return (
+    <SafeAreaView  className='w-full h-full' style={{ backgroundColor: themeType.headerBg }}>
+      <AppNavigator/>
+    </SafeAreaView>
+  );
+}
 
 export default function App() {
 
+
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        {/* bg-white only applies to mobile app because browser doesn't account for safe area, change to whatever color I want if I don't want a white background */}
-        <SafeAreaView className='bg-white w-full h-full'>
-
-              {/* EDIT INPUT COMPONENT TESTING PURPOSES */}
-              {/* <EditInput>
-
-              </EditInput> */}
-              {/* NOW CREATE A NON INPUT COMPONENT WHERE IT IS FREE EDITING AT ALL TIMES SAVING WITH ASYNC STORAGE */}
-             <AppNavigator/>
-
-   
-              
-            
-            {/* <StatusBar style="auto" /> */}
-        </SafeAreaView>
+      <ThemeProvider>
+      <NavigationContainer >
+         <ThemedSafeArea/>
+          {/* <StatusBar style="auto" /> */}
       </NavigationContainer>
+      </ThemeProvider>
     </SafeAreaProvider>
 
   );
@@ -45,4 +48,5 @@ const styles = StyleSheet.create({
     // alignItems: 'center',
     // justifyContent: 'center',
   },
+ 
 });

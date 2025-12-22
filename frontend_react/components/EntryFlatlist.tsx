@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '@/src/types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import ItemComponent from './Item';
+import { useTheme } from '@/src/ThemeContext';
 
 
 
@@ -19,6 +20,8 @@ type EntryFlatlistProps = MainScreenProps & ParentProps;
 
 export default function EntryFlatlist({navigation, route, EntryStorageKey}: EntryFlatlistProps){
 
+//theme context
+const{theme, themeType} = useTheme()
     console.log('STORAGE KEY:', EntryStorageKey)
     
 /**
@@ -509,9 +512,9 @@ useEffect(() =>{
 
         <View>
             <Pressable onPressIn={() => setIsFocused(true)} onPressOut={() => increment()}> 
-            <View className='border-2 rounded-lg flex flex-row items-center' style={{marginTop:20, padding:12, borderColor:isFocused?'green':'black'}}>
-            <Feather style={{marginTop:4, marginRight:6}} name="plus-circle" size={24} color={isFocused?'green' : 'black'} />
-            <Text style={{fontSize:16, marginTop:4, color:isFocused?'green' : 'black'}}>Add Entry</Text>
+            <View className='border-2 rounded-lg flex flex-row items-center' style={{marginTop:20, padding:12, borderColor:isFocused?'green':themeType.textPrimary}}>
+            <Feather style={{marginTop:4, marginRight:6}} name="plus-circle" size={24} color={isFocused?'green' : themeType.textPrimary} />
+            <Text style={{fontSize:16, marginTop:4, color:isFocused?'green' : themeType.textPrimary}}>Add Entry</Text>
             </View>
             </Pressable>
             {newItemCount > 0?
@@ -522,7 +525,7 @@ useEffect(() =>{
         
             <View className='flex w-full justify-center items-center mt-10'>
             {newItemCount == 0 ?
-                <Text>No Entries to list</Text>:(<>
+                <Text style={{color:themeType.textPrimary}}>No Entries to list</Text>:(<>
                     {/* FLATLIST OF ITEMS */}
                     <FlatList
                         ref={flatListref}

@@ -6,8 +6,8 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { MaterialIcons } from '@expo/vector-icons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import {Route, useNavigation} from '@react-navigation/native'
-import { RootStackParamList } from '../src/types';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTheme } from '@/src/ThemeContext';
+
 
 //const STORAGE_KEY = 'inputValue'
 const inputAccessoryViewID = 'uniqueID';
@@ -20,6 +20,9 @@ interface RouteProps {
 
 // converting to arrow function for passing parameters
 const TextArea = ({STORAGE_KEY}: RouteProps) => {
+
+//theme context
+const{theme, themeType} = useTheme()
 
     // SEE WHICH STORAGE KEYS EXIST
     const listAllKeys = async () => {
@@ -402,7 +405,7 @@ const TextArea = ({STORAGE_KEY}: RouteProps) => {
             <View className='flex'>
                 <View className='flex flex-row'>
                     <TouchableOpacity className='' onPress={onReset}>
-                    <Text className='text-xl'>Clear</Text>
+                    <Text className='text-xl' style={{color:themeType.textPrimary}}>Clear</Text>
                     </TouchableOpacity>
                 { isVisible ? 
                 <TouchableOpacity className='' onPress={onPress}>
@@ -419,7 +422,7 @@ const TextArea = ({STORAGE_KEY}: RouteProps) => {
 
 
     return (
-        <View className='w-full h-full bg-slate-500'>
+        <View className='w-full h-full bg-neutral-50'>
                 {/*THIS RENDERS FROM THE HEADER NOW  VIA USELAYOUTEFFECT*/}
                 {/* <View className='flex flex-row justify-between  p-4'>
                     <View className='flex justify-center'>
@@ -448,7 +451,7 @@ const TextArea = ({STORAGE_KEY}: RouteProps) => {
          
                 
             <View 
-            style={styles.container}>
+            style={[styles.container, {backgroundColor:themeType.screenBg}]}>
                 <KeyboardAwareScrollView
                 innerRef={(ref) => { scrollViewRef.current = ref; }}
                 extraScrollHeight={-20} // Buffer for status bar/toolbars—adjust to avoid clipping
@@ -467,10 +470,11 @@ const TextArea = ({STORAGE_KEY}: RouteProps) => {
                         {doesDataExist ? 
                     
                             <TextInput
+                            keyboardAppearance={theme == 'light'? 'light':'dark'}
                             ref={inputRef}
                             className=''
                             // style={[styles.input,{fontSize, lineHeight,height: isEditing ? inputHeight : undefined, minHeight: !isEditing ? inputMinHeight : undefined }]}
-                            style={[styles.input,{fontSize, lineHeight, height:keyboardVisibility ? inputHeight : '100%'}]}
+                            style={[styles.input,{fontSize, lineHeight, height:keyboardVisibility ? inputHeight : '100%', color:themeType.textPrimary}]}
                             textAlignVertical="center"
                             autoFocus={keyboardVisibility ? true : false}
                             selectionColor={'#52eb34'} 
@@ -487,10 +491,11 @@ const TextArea = ({STORAGE_KEY}: RouteProps) => {
                             :  
                             // IF NO SAVED DATA
                             <TextInput
+                            keyboardAppearance={theme == 'light'? 'light':'dark'}
                             ref={inputRef}
                             className='text-3xl'
                             // style={[styles.input,{fontSize, lineHeight,height: isEditing ? inputHeight : undefined, minHeight: !isEditing ? inputMinHeight : undefined }]}
-                            style={[styles.input,{fontSize, lineHeight, height:keyboardVisibility ? inputHeight : '100%'}]}
+                            style={[styles.input,{fontSize, lineHeight, height:keyboardVisibility ? inputHeight : '100%', color:themeType.textPrimary}]}
                             textAlignVertical="center"
                             autoFocus={true}
                             selectionColor={'#52eb34'} 

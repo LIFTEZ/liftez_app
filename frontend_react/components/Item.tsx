@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View,Text,Pressable,Alert,Modal, StyleSheet, ScrollView} from 'react-native';
 import { NavigationProp } from '@react-navigation/native'; // For TS typing
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { useTheme } from '@/src/ThemeContext';
 // required in order to pass the entire item from the renderItem
 interface NoteData {
     id: string;
@@ -32,7 +32,8 @@ const archiveItemLimit = 30
 const[isCollapsed, setIsCollapsed] = useState<boolean>(false)
 const[archiveCount, setArchiveCount] = useState<number>(0)
 
-
+//theme context
+const{theme, themeType} = useTheme()
 
 interface AsyncKeyValues{
     input: string
@@ -108,16 +109,16 @@ item.entry_status = doesEntryExist.toString() //convert boolean to string
         
         {/* See if item count divided by 30 gives no remainder */}
         {item.itemCount <= archiveItemLimit? (<>
-                    <Pressable style={{display:!isCollapsed? 'flex':'none'}} className='p-4 border-2 rounded-lg w-full mb-2'  onPress={()=>{navigation.navigate('Edit',{storagekey:`entry_${item.itemCount}`})}}>
-                    <Text>Entry Created On:<Text> {item.date}</Text></Text>
-                    <Text className='mt-2'>ENTRY STATUS: <Text style={{color:doesEntryExist? 'green': 'red'}}>{item.entry_status.toUpperCase()}</Text></Text>
+                    <Pressable style={{display:!isCollapsed? 'flex':'none', borderColor:themeType.textPrimary}} className='p-4 border-2 rounded-lg w-full mb-2'  onPress={()=>{navigation.navigate('Edit',{storagekey:`entry_${item.itemCount}`})}}>
+                    <Text style={{color:themeType.textPrimary}}>Entry Created On:<Text> {item.date}</Text></Text>
+                    <Text className='mt-2' style={{color:themeType.textPrimary}}>ENTRY STATUS: <Text style={{color:doesEntryExist? 'green': 'red'}}>{item.entry_status.toUpperCase()}</Text></Text>
                     <View className='flex flex-row items-center justify-between'>
-                    <Text className='mt-2 text-xl'>DAY: {item.itemCount}</Text>
+                    <Text className='mt-2 text-xl' style={{color:themeType.textPrimary}}>DAY: {item.itemCount}</Text>
                     {/* check if entry exists */}
                     {doesEntryExist?
                     (<>
-                    <Pressable className='mt-2 border-2 rounded-xl p-2' style={{ borderColor:isFocused?'green':'black'}} onPressIn={()=>setIsFocused(true)} onPressOut={()=>getKeyValue(EStorageKey)}>
-                    <Text style={{color:isFocused?'green' : 'black'}}>View Details</Text>
+                    <Pressable className='mt-2 border-2 rounded-xl p-2' style={{ borderColor:isFocused?'green':themeType.textPrimary}} onPressIn={()=>setIsFocused(true)} onPressOut={()=>getKeyValue(EStorageKey)}>
+                    <Text style={{color:isFocused?'green' : themeType.textPrimary}}>View Details</Text>
                     </Pressable>
                     </>):null}
                     </View>
@@ -139,8 +140,8 @@ item.entry_status = doesEntryExist.toString() //convert boolean to string
                                         <View className='w-full bg-emerald-500 flex items-center p-2 rounded-t-lg'>
                                             <Text>DAY: {item.itemCount}, {item.date}</Text>
                                         </View>
-                                        <ScrollView className='h-3/4 w-full bg-neutral-50 rounded-b-lg'>
-                                        <Text className='mt-10' style={styles.modalText}>{entryValue}</Text>
+                                        <ScrollView className='h-3/4 w-full rounded-b-lg' style={{backgroundColor:themeType.screenBg}}>
+                                        <Text className='mt-10' style={[styles.modalText, {color:themeType.textPrimary}]}>{entryValue}</Text>
                                         </ScrollView>
                                     </View>
                                      <Pressable className='mt-4 bg-emerald-500'
@@ -179,7 +180,6 @@ const styles = StyleSheet.create({
     },
     modalView: {
       margin: 20,
-  
       borderRadius: 20,
       padding: 35,
       alignItems: 'center',

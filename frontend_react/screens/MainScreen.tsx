@@ -2,10 +2,9 @@ import { useEffect,useState,useRef,useCallback} from 'react';
 import {Text, View, StyleSheet} from 'react-native'
 import {useNavigation, useFocusEffect} from '@react-navigation/native'
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { useTheme } from '@/src/ThemeContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../src/types';
-
 import EntryFlatlist from '@/components/EntryFlatlist';
 
 
@@ -13,7 +12,8 @@ type MainScreenProps = NativeStackScreenProps<RootStackParamList, 'Main'>;
 
 
 export default function Main({navigation, route}: MainScreenProps){
-
+    //theme context
+    const{themeType} = useTheme()
 
     const[eStorageKey, setEntryStorageKey] = useState<string>('')
 
@@ -24,9 +24,9 @@ export default function Main({navigation, route}: MainScreenProps){
         console.log('{MainScreen says} key passed from EditScreen from TextArea:', entryStorageKey)
         return(
        
-            <View className='h-full w-full' style={styles.container}>
+            <View className='h-full w-full' style={[styles.container, {backgroundColor: themeType.screenBg}]}>
                 <View className='p-4'>
-                <Text style={styles.titleText}>JP MEAL LOGGING</Text>
+                <Text style={[styles.titleText,{color:themeType.textPrimary}]}>JP MEAL LOGGING</Text>
                 </View>
                <EntryFlatlist navigation={navigation} route={route} EntryStorageKey={entryStorageKey}/>
     
@@ -38,9 +38,9 @@ export default function Main({navigation, route}: MainScreenProps){
     else{
         return(
        
-            <View className='h-full w-full' style={styles.container}>
+            <View className='h-full w-full' style={[styles.container, {backgroundColor: themeType.screenBg}]}>
                 <View className='p-4'>
-                <Text style={styles.titleText}>JP MEAL LOGGING</Text>
+                <Text style={[styles.titleText,{color:themeType.textPrimary}]}>JP MEAL LOGGING</Text>
                 </View>
                <EntryFlatlist navigation={navigation} route={route} />
     
