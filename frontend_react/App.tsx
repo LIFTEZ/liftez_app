@@ -12,6 +12,7 @@ import { ThemeProvider, useTheme } from './src/ThemeContext';
 import "./global.css"
 import * as Font from 'expo-font'
 // Sub-component to use the hook for dynamic styling
+// 
 function ThemedSafeArea() {
   //theme context
   const { themeType } = useTheme(); // Access theme here (inside provider)
