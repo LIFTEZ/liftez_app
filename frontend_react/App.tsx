@@ -10,7 +10,7 @@ import AppNavigator from './src/navigation/navigator'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeProvider, useTheme } from './src/ThemeContext';
 import "./global.css"
-
+import * as Font from 'expo-font'
 // Sub-component to use the hook for dynamic styling
 function ThemedSafeArea() {
   //theme context
@@ -24,6 +24,16 @@ function ThemedSafeArea() {
 }
 
 export default function App() {
+
+  //Load font universally
+  useEffect(()=>{
+    const loadMyFonts = async () =>{
+        await Font.loadAsync({
+            'ScienceGothic-Regular': require('./assets/fonts/ScienceGothic-Regular.ttf')
+        })
+    }
+   loadMyFonts(); 
+},[])
 
 
   return (

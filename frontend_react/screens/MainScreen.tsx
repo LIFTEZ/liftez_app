@@ -6,7 +6,7 @@ import { useTheme } from '@/src/ThemeContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../src/types';
 import EntryFlatlist from '@/components/EntryFlatlist';
-
+import log from '@/src/utils/Logger';
 
 type MainScreenProps = NativeStackScreenProps<RootStackParamList, 'Main'>;
 
@@ -17,16 +17,17 @@ export default function Main({navigation, route}: MainScreenProps){
 
     const[eStorageKey, setEntryStorageKey] = useState<string>('')
 
+
     //check if returned from EditScreen
     if(route.params){
         const{entryStorageKey} = route.params
-        console.log(route.params)
-        console.log('{MainScreen says} key passed from EditScreen from TextArea:', entryStorageKey)
+        log.info(route.params)
+        log.info('{25: MainScreen says} key passed from EditScreen from TextArea:', entryStorageKey)
         return(
        
             <View className='h-full w-full' style={[styles.container, {backgroundColor: themeType.screenBg}]}>
                 <View className='p-4'>
-                <Text style={[styles.titleText,{color:themeType.textPrimary}]}>JP MEAL LOGGING</Text>
+                <Text style={[styles.titleText,{color:'#00bc7d'}]}>JP MEAL LOGGING</Text>
                 </View>
                <EntryFlatlist navigation={navigation} route={route} EntryStorageKey={entryStorageKey}/>
     
@@ -40,7 +41,7 @@ export default function Main({navigation, route}: MainScreenProps){
        
             <View className='h-full w-full' style={[styles.container, {backgroundColor: themeType.screenBg}]}>
                 <View className='p-4'>
-                <Text style={[styles.titleText,{color:themeType.textPrimary}]}>JP MEAL LOGGING</Text>
+                <Text style={[styles.titleText,{color:'#00bc7d'}]}>JP MEAL LOGGING</Text>
                 </View>
                <EntryFlatlist navigation={navigation} route={route} />
     
@@ -49,13 +50,15 @@ export default function Main({navigation, route}: MainScreenProps){
         )
     }
     
+    
+
     // useFocusEffect(
     //     useCallback(() => {
     //       const loadTempKey = async () => {
     //         try {
     //           const tempKey = await AsyncStorage.getItem('tempStorageKey');
     //           if (tempKey) {
-    //             console.log('{Main/EntryFlatlist says} storage key from TextArea:', tempKey);
+    //             log.info('{Main/EntryFlatlist says} storage key from TextArea:', tempKey);
     //             // Use the key here (e.g., update state, check existence, reload list)
     //             await AsyncStorage.removeItem('tempStorageKey'); // Clear after use
     //           }
@@ -81,7 +84,8 @@ const styles = StyleSheet.create({
     },
     titleText:{
         textAlign:'center',
-        fontSize:24
+        fontSize:24,
+        fontFamily:'ScienceGothic-Regular'
     }
 
 })

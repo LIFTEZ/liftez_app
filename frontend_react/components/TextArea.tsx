@@ -1,12 +1,16 @@
 import React, { useEffect,useState,useRef, useLayoutEffect } from 'react';
 import {View, Text, TextInput,Button, TouchableOpacity, GestureResponderEvent, Keyboard, KeyboardEvent, StyleSheet, Dimensions, ScrollView, 
-InputAccessoryView, PointerEvent, TouchableWithoutFeedback} from 'react-native'
+InputAccessoryView, PointerEvent, TouchableWithoutFeedback, InteractionManager,
+Alert} from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { MaterialIcons } from '@expo/vector-icons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import {Route, useNavigation} from '@react-navigation/native'
 import { useTheme } from '@/src/ThemeContext';
+import log from '@/src/utils/Logger'; 
+
+
 
 
 //const STORAGE_KEY = 'inputValue'
@@ -28,10 +32,10 @@ const{theme, themeType} = useTheme()
     const listAllKeys = async () => {
         try {
           const keys = await AsyncStorage.getAllKeys();
-          console.info("Stored keys:", keys);
+        //   log.info("{31: TextArea => listAllKeys says} Stored keys:", keys);
           return keys;
         } catch (error) {
-          console.error("Failed to fetch keys", error);
+          log.error("{34: TextArea => listAllKeys says} Failed to fetch keys", error);
         }
       };
 
@@ -39,8 +43,8 @@ const{theme, themeType} = useTheme()
     //RETURN FROM EATING
     /**
      * NOTE:
-     * still might be some inconsistency with the scrolling not sure
-     * also very bad bouncing when using the space bar alot
+     * - RESOVLED still might be some inconsistency with the scrolling not sure
+     * - RESOLVED (i think) also very bad bouncing when using the space bar alot
      * 
      * 
      * FUTURE THINGS:
@@ -130,13 +134,13 @@ const{theme, themeType} = useTheme()
     //TextInput onFocus function, controls rendering of which TextInput based on isFocused and the Done button
     const toggleVisibility = () => {
         if(!isVisible ){
-            console.log('textinput is now focused and done button is visible')
+            log.info('{133: TextArea => toggleVisibility says} textinput is now focused and done button is visible')
             setFocus(true);
             setIsVisible(true);
             
         }
         else{
-            console.log('textinput is no longer focused and done button is not visible')
+            log.info('{139: TextArea => toggleVisibility says} textinput is no longer focused and done button is not visible')
             setFocus(false);
             setIsVisible(false);
          
@@ -152,12 +156,12 @@ const{theme, themeType} = useTheme()
       const storeData = async (key: string, value: NoteData): Promise<void> => {
         try {
           const jsonValue = JSON.stringify(value);
-          console.log(jsonValue)
+          log.info('{155: TextArea => StoreData says}', jsonValue)
           await AsyncStorage.setItem(key, jsonValue);
     
         
         } catch (error) {
-          console.error("Error saving data", error);
+          console.error("{160: TextArea => StoreData says} Error saving data", error);
         }
       };
     
@@ -168,12 +172,12 @@ const{theme, themeType} = useTheme()
           // Parse the JSON string back into a User object, or return null if no value
           if (jsonValue != null) {
             const parsedValue = JSON.parse(jsonValue) as NoteData;
-           // console.log('input value:', parsedValue.input);  // Logs just the 'input' value, e.g., 'some value'
+           // log.info('input value:', parsedValue.input);  // Logs just the 'input' value, e.g., 'some value'
             return parsedValue;
           }
           return null;
         } catch (error) {
-          console.error("Error retrieving data", error);
+          console.error("{176: TextArea => getData says} Error retrieving data", error);
           return null;
         }
       };
@@ -188,7 +192,7 @@ const{theme, themeType} = useTheme()
            
           }
         } catch (error) {
-          console.error("Error resetting data", error);
+          console.error("{191: TextArea => resetData says} Error resetting data", error);
         }
       };
     
@@ -197,6 +201,29 @@ const{theme, themeType} = useTheme()
         // remove existing storage key
         if(newText == ''){
             resetData(STORAGE_KEY)
+        }
+
+        
+        if(newText.length > 0){
+        //get last character typed I can use this for several inputs ***
+            const lastTypedChar = inputValue.slice(-1);
+            log.info('{206: TextArea => setTextData says} Last typed character:', lastTypedChar);
+            //LOGIC TO APPLY CURRENT HOUR IN 12 TIME FORMAT WITH MINUTES AFTER @ character IS DETECTED AS LAST CHARACTER INPUTED
+            if(lastTypedChar == "@"){
+                const now = new Date()
+                const timeString = now.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                })
+                const newString = newText.slice(0,-2) //remove the ampersand and add it with space
+                newText = newString + '@ ' + timeString 
+            }
+
+            if(lastTypedChar == '-'){
+                const newString = newText.slice(0,-2) //remove the typed - because I want to indent and then add the dash
+                newText = newString + '   -  '
+            }
         }
         storeData(STORAGE_KEY, {input: newText})
         getData(STORAGE_KEY).then((data) => {
@@ -209,24 +236,13 @@ const{theme, themeType} = useTheme()
 
 
 
-    // DONE BUTTON FUNCTION, STORE INPUT AS ASYNCSTORAGE KEY ITEM
+    // DONE BUTTON FUNCTION, NO LONGER DEPENDENT ON DATA
       const onPress = () =>{
-        console.log('this button was pressed')
-        getData(STORAGE_KEY).then((data) => {
-            if (data) {
-              // setFocus(false)
-              if(data?.input){
-                console.log('input value from button press log:', data.input)
-                setIsVisible(false) //hide done button
-                inputRef.current?.blur() //force focus off from TextInput
-                Keyboard.dismiss() //dismiss keyboard
-              }  
-            }
-            else{
-              console.log('{TextArea.tsx from Done btn press says} no saved data exists')
-              return
-            }
-          });
+        log.info('{237: TextArea => onPress says} this button was pressed')
+        setIsVisible(false) //hide done button
+        inputRef.current?.blur() //force focus off from TextInput
+        Keyboard.dismiss() //dismiss keyboard
+        return
       
       }
 
@@ -234,17 +250,37 @@ const{theme, themeType} = useTheme()
       const onReset = (e: GestureResponderEvent) =>{
         const textInput = inputValue //input value is the useState value from setText()
         //also figure out state management if i should use Zustand for larger data
-          setFocus(true)
-          setIsVisible(false)
-          setText('')
-          Keyboard.dismiss()
-          resetData(STORAGE_KEY)
-          return
+        Alert.alert(            
+            '',
+            "WARNING: Are you sure you want to delete all the text in this entry?",
+            [
+                {
+                    text: "Yes",
+                    onPress: () =>{    
+                        setFocus(true)
+                        setIsVisible(false)
+                        setText('')
+                        Keyboard.dismiss()
+                        resetData(STORAGE_KEY)
+                        return
+                    },
+                    style:'destructive'
+                },
+                {
+                    text: "No",
+                    onPress: () =>{
+                        return
+                    },
+                    style:'cancel'
+                }
+            ]
+          )
+          
       }
 
     // Dont think this actually works or triggers
     const startEditing = () => {
-        console.log('editing has started')
+        log.info('{259: TextArea => startEditing says} editing has started')
         setisEditing(true);
         inputRef.current?.focus();
       };
@@ -276,7 +312,7 @@ const{theme, themeType} = useTheme()
         setFontSize(size)
         }
         else{
-            console.log('max font-size reached')
+            log.info('max font-size reached')
         }
     }
 
@@ -286,7 +322,7 @@ const{theme, themeType} = useTheme()
         setFontSize(size)
         }
         else{
-            console.log('min font-size reached')
+            log.info('min font-size reached')
         }
 
     }
@@ -308,7 +344,7 @@ const{theme, themeType} = useTheme()
     
     // Prevent the Done button from disappearing if the keyboard doesn't fully disappear
     useEffect(()=>{
-        console.log('keyboard status:',keyboardVisibility)
+        log.info('{334: TextArea => useEffect says} keyboard status:',keyboardVisibility)
         if(keyboardVisibility){
             setIsVisible(true)
         }else{
@@ -319,7 +355,7 @@ const{theme, themeType} = useTheme()
 
     // Set keyboard visibility for the above function so the Done button has something to check to confirm the keyboard disappeared or just bounced
     useEffect(()=>{
-        console.log('new keyboard height:', keyboardHeight)
+        log.info('{345: TextArea => useEffect says} new keyboard height:', keyboardHeight)
         if(keyboardHeight == 0){
             setKeyboardVisibility(false)
         }
@@ -341,7 +377,7 @@ const{theme, themeType} = useTheme()
         setFocus(false)
         };
     
-        console.log(keyboardHeight)
+        log.info(keyboardHeight)
         // Add listeners for keyboard events
         const showSubscription = Keyboard.addListener('keyboardDidShow', onKeyboardShow);
         const hideSubscription = Keyboard.addListener('keyboardDidHide', onKeyboardHide);
@@ -367,28 +403,33 @@ const{theme, themeType} = useTheme()
         getData(STORAGE_KEY).then((data) => {
           if (data) {
             setText(data.input); // Set if something is saved
-            // setFocus(false)
+            setisEditing(false)
+            setFocus(false)
+            setKeyboardVisibility(false)
+            setTimeout(()=>{
+                setisEditing(true)
+            },300)
             if(data?.input){
                 retrieveData(true)
-                //console.log('saved text data was found:',data.input)
+                // log.info('saved text data was found:',data.input)
             }  
           }
           else{
-            console.log('{TextArea.tsx from initial load says} saved data does not exist')
+            log.info('{400: TextArea => useEffect says} saved data does not exist')
             setFocus(true)
           }
         });
       },[]);
     
       useEffect(()=>{
-        console.log('input focus status:', isFocused)
+        log.info('{407: TextArea => useEffect says} input focus status:', isFocused)
 
       },[inputRef.current?.isFocused()])
 
 
     // watch the scrolling status 
     useEffect(()=>{
-        console.log('scroll view is scrolling:',isScrolling)
+        log.info('{414: TextArea => useEffect says} scroll view is scrolling:',isScrolling)
         if(isScrolling){
           setisEditing(false)
         }
@@ -397,29 +438,55 @@ const{theme, themeType} = useTheme()
         }
     },[isScrolling])
 
-    // CONDITIONAL RENDERING FOR NAVIGATOR HEADER
-    useLayoutEffect(() => {
 
+    const[isInput, setIsInput] = useState<boolean>(false)
+    useEffect(()=>{
+        
+        log.info('{427: TextArea => useEffect says} input value length:', inputValue.length)
+        if(inputValue.length > 0){
+            
+            setIsInput(true)
+        }else{
+            setIsInput(false)
+        }
+
+        log.info('{435: TextArea => useEffect says} input value:', inputValue)
+
+       
+
+
+    },[inputValue])
+
+// CONDITIONAL RENDERING FOR NAVIGATOR HEADER
+useLayoutEffect(() => {
+    setTimeout(()=>{
+    const entryName = STORAGE_KEY.split('_')[0]
+    const entryIndex = STORAGE_KEY.split('_')[1]
+    
+    const title = `${entryName} ${entryIndex}`
         navigation.setOptions({
-          headerRight: () => (
-            <View className='flex'>
-                <View className='flex flex-row'>
-                    <TouchableOpacity className='' onPress={onReset}>
-                    <Text className='text-xl' style={{color:themeType.textPrimary}}>Clear</Text>
-                    </TouchableOpacity>
-                { isVisible ? 
-                <TouchableOpacity className='' onPress={onPress}>
-                    <Text className='text-blue-500 text-xl ml-6'>Done</Text>
-                </TouchableOpacity> : null
-                }
+            headerRight: () => (
+                <View className='flex'>
+                    <View className='flex flex-row'>
+                        {inputValue.length > 0?
+                        <TouchableOpacity className='' onPress={onReset}>
+                        <Text className='text-xl ' style={{color:themeType.textPrimary}}>Clear</Text>
+                        </TouchableOpacity>
+                        :null}
+                    { isVisible ? 
+                    <TouchableOpacity className='' onPress={onPress}>
+                        <Text style={{color:'#00bc7d'}}className='text-xl ml-6'>Done</Text>
+                    </TouchableOpacity> : null
+                    }
+                    </View>
                 </View>
-            </View>
-          ),
-          title: STORAGE_KEY.toUpperCase()
+            ),
+            title: title.toUpperCase()
         });
-      }, [isVisible, navigation]); // Re-run when isVisible changes
+    },300)
+}, [isVisible, navigation, inputValue]); // Re-run when isVisible changes
 
-
+ 
 
     return (
         <View className='w-full h-full bg-neutral-50'>
@@ -463,24 +530,26 @@ const{theme, themeType} = useTheme()
                  onMomentumScrollEnd={() => setIsScrolling(false)}
                  scrollEventThrottle={16}
                  enableAutomaticScroll={true}
+                
                 // resetScrollToCoords={{ x: 0, y: 0 }} // Resets on hide for consistency
                 >
                 <TouchableWithoutFeedback onPress={startEditing} disabled={isEditing}>
                     <View>
                         {doesDataExist ? 
-                    
+                            (<>
                             <TextInput
                             keyboardAppearance={theme == 'light'? 'light':'dark'}
                             ref={inputRef}
                             className=''
                             // style={[styles.input,{fontSize, lineHeight,height: isEditing ? inputHeight : undefined, minHeight: !isEditing ? inputMinHeight : undefined }]}
-                            style={[styles.input,{fontSize, lineHeight, height:keyboardVisibility ? inputHeight : '100%', color:themeType.textPrimary}]}
+                            style={[styles.input,{fontSize, lineHeight, height:keyboardVisibility && isFocused ? inputHeight : '100%', color:themeType.textPrimary}]}
                             textAlignVertical="center"
-                            autoFocus={keyboardVisibility ? true : false}
+                            autoFocus={keyboardVisibility? true : false}
                             selectionColor={'#52eb34'} 
                             onFocus={toggleVisibility}
                             multiline={true}
                             editable={isEditing}
+                            scrollEnabled={isFocused?true:false}
                             value={inputValue} 
                             onChangeText={setTextData}
                             inputAccessoryViewID={inputAccessoryViewID}
@@ -488,8 +557,23 @@ const{theme, themeType} = useTheme()
                             //     handleContentSizeChange(contentSize.width, contentSize.height)
                             //   }
                             />
-                            :  
-                            // IF NO SAVED DATA
+                            {isFocused?
+                                <InputAccessoryView nativeID={inputAccessoryViewID}>
+                                
+                                <View className='flex flex-row h-12  justify-center items-center bg-slate-800/50'>
+                                    <TouchableOpacity  onPress={incrementFontSize}>
+                                        <MaterialCommunityIcons name="format-font-size-increase" className='mr-10' size={32} color="#0bfc03" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={decrementFontSize}>
+                                        <MaterialCommunityIcons name="format-font-size-decrease" className='' size={32} color="#fc0303" />
+                                    </TouchableOpacity>
+                                </View>
+                            </InputAccessoryView> 
+                            :null}
+                              
+                            </>)   
+                            :(<>
+                            {/* // IF NO SAVED DATA */}
                             <TextInput
                             keyboardAppearance={theme == 'light'? 'light':'dark'}
                             ref={inputRef}
@@ -501,28 +585,30 @@ const{theme, themeType} = useTheme()
                             selectionColor={'#52eb34'} 
                             onFocus={toggleVisibility}
                             multiline={true}
-                            value={inputValue} 
+                            value={inputValue}
+                            scrollEnabled={isFocused?true:false}
                             onChangeText={setTextData}
                             inputAccessoryViewID={inputAccessoryViewID}
                             // onContentSizeChange={({ nativeEvent: { contentSize } }) =>
                             //     handleContentSizeChange(contentSize.width, contentSize.height)
                             //   }
                             />
+                            <InputAccessoryView nativeID={inputAccessoryViewID}>
+                            <View className='flex flex-row h-12  justify-center items-center bg-slate-800/50'>
+                                <TouchableOpacity  onPress={incrementFontSize}>
+                                    <MaterialCommunityIcons name="format-font-size-increase" className='mr-10' size={32} color="#0bfc03" />
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={decrementFontSize}>
+                                    <MaterialCommunityIcons name="format-font-size-decrease" className='' size={32} color="#fc0303" />
+                                </TouchableOpacity>
+                            </View>
+                            </InputAccessoryView> 
+                            </>)  
                         } 
                     </View>
                 </TouchableWithoutFeedback>
-                <InputAccessoryView nativeID={inputAccessoryViewID}>
                 
-                    <View className='flex flex-row h-12  justify-center items-center bg-slate-800/50'>
-                        <TouchableOpacity  onPress={incrementFontSize}>
-                            <MaterialCommunityIcons name="format-font-size-increase" className='mr-10' size={32} color="#0bfc03" />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={decrementFontSize}>
-                            <MaterialCommunityIcons name="format-font-size-decrease" className='' size={32} color="#fc0303" />
-                        </TouchableOpacity>
-                    </View>
                 
-                </InputAccessoryView>    
                 </KeyboardAwareScrollView>
             </View>
                     

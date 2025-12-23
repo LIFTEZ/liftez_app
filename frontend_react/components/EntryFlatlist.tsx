@@ -1,11 +1,13 @@
 import { useEffect, useState,useRef, use } from 'react';
-import {Text, View, Pressable,Button, Alert, FlatList} from 'react-native'
+import {Text, View, Pressable,Button, Alert, FlatList, StyleSheet} from 'react-native'
 import Feather from '@expo/vector-icons/Feather';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '@/src/types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import ItemComponent from './Item';
 import { useTheme } from '@/src/ThemeContext';
+import {LinearGradient} from 'expo-linear-gradient'
+import log from '@/src/utils/Logger';
 
 
 
@@ -22,14 +24,28 @@ export default function EntryFlatlist({navigation, route, EntryStorageKey}: Entr
 
 //theme context
 const{theme, themeType} = useTheme()
-    console.log('STORAGE KEY:', EntryStorageKey)
+    log.info('{26: EntryFlatList says} STORAGE KEY:', EntryStorageKey)
     
 /**
+ *
  * 
+ * Issues: 
+ * - Keyboard on dismisal still clips the text, not a huge issue but something I'd like to fix if i can
+ * RESOLVED - TextArea scroll to bottom on entry open does not work as it should, it shouldnt be focused on open anyways
+ * RESOLVED - for some reason the entry status only updates if I move to another entry then go back to the previous entry that I tried updating,
+ *   this means there is a entry length or existing problem that prevents a single entry from acquiring its correct status 
+ *          - Issue was the useEffect didn't have the correct dependency required for rerender which was route.params
+ *
+ * AFTER EAT:
+ * COMPLETED - continue adding line number and function name to log {26: EntryFlatList says => <function name>}
+ * COMPLETED - checkout react native logs and see if I can replace log.infos with that
+ * - commit stylistic changes and bug fixes
+ * - create new branch for TextArea fix first and then archival feature
+ * - implement archiving
  * 
  * 
  * CURRENTLY WORKING ON:
- *
+ * COMPLETED (for the most part) - adding styles to everything, work on the buttons next make them 3d give them some personality starting with border gradients
  * 
  * - NEXT: 
  *       - create a way to archive all the entries every 30 days
@@ -73,7 +89,7 @@ const{theme, themeType} = useTheme()
  *    - add user profile to manage and display all those attributes above
  * 
  * 
- * Issues: NONE at the moment
+ *
  * RESOLVED - Flatlist won't scroll fully
  *              - added fixed height of 3/4 of screen
  * 
@@ -92,7 +108,7 @@ const[EntryStorageKeys, setEntryStorageKeys] = useState<string[]>([])
 const removeKey = async (key: string) => {
 
     if(EntryStorageKeys.length == 0){
-        console.log('{func removeKey says} no keys to remove')
+        log.info('{108: EntryFlatlist => removeKey says} no keys to remove')
         return
     }
 
@@ -129,10 +145,10 @@ interface StorageKey{
 const EStorageKeyCheck = async () =>{
     
     if(EntryStorageKey){
-        console.log('this is firing true')
+        log.info('{145: EntryFlatlist => EStorageCheck says} is firing true')
         const jsonValue = await AsyncStorage.getItem(EntryStorageKey)
 
-        console.log('jsonvalue:',jsonValue)
+        log.info('{148: EntryFlatlist => EStorageCheck says} jsonvalue:',jsonValue)
         //jsonvalue will always exist because it is a full string
         if(jsonValue){
             //convert to object that matches the string setup
@@ -140,32 +156,32 @@ const EStorageKeyCheck = async () =>{
             //if the key value is not empty, basically im checking if I opened an entry that had saved data, modified it to have no data
             //and then returned to Main screen, now I need to remove the key from the useState array because it has no data
             if(parsedValue.input){
-                console.log(parsedValue.input)
+                log.info(parsedValue.input)
                 //make sure the key doesn't already exist
                 if(!EntryStorageKeys.includes(EntryStorageKey)){
                 // setEntryStorageKeys(EntryStorageKey) //figure this out
-                    console.log('{EntryFlatList says} storage key contains data but does not exist in the EntryStorageKeys array.. adding key to array:', EntryStorageKey)
+                    log.info('{160: EntryFlatList says}{144: EntryFlatlist => EStorageCheck says} storage key contains data but does not exist in the EntryStorageKeys array.. adding key to array:', EntryStorageKey)
                     setEntryStorageKeys([...EntryStorageKeys, EntryStorageKey])
                 }
                 else{
-                    console.log('{EntryFlatList says} storage key contains data nothing else needs to be done:', EntryStorageKey)
+                    log.info('{164: EntryFlatlist => EStorageCheck says} storage key contains data nothing else needs to be done:', EntryStorageKey)
                     
                 }   
             }
             else{
-                console.log('removing storage key')
+                log.info('{169: EntryFlatlist => EStorageCheck says} removing storage key')
                 removeKey(EntryStorageKey)
             }
            
         }
         // null value, remove key
         else{
-            console.log('null key value, removing key')
+            log.info('{176: EntryFlatlist => EStorageCheck says} null key value, removing key')
             removeKey(EntryStorageKey)
         }  
     }
     else{
-        console.log('storage key does not exist')
+        log.info('{181: EntryFlatlist => EStorageCheck says} storage key does not exist')
     }
 }
 
@@ -209,38 +225,39 @@ const[items,setItems] = useState<NoteData[]>([
 //storage key check
 useEffect(()=>{
 
+    
     if(EntryStorageKey == ''){
-        console.log('storage key does not exist')
+        log.info('{226: EntryFlatlist => UseEffect says} storage key does not exist')
         removeKey(EntryStorageKey)
     }
 
 
     if(EntryStorageKey && !EntryStorageKeys.includes(EntryStorageKey)){
-        console.log('{EntryFlatList says} storage key from Main passed all the way from the entry in TextArea:', EntryStorageKey)
+        log.info('{232: EntryFlatlist => UseEffect says} storage key from Main passed all the way from the entry in TextArea:', EntryStorageKey)
         setTimeout(() => {
                    EStorageKeyCheck()
                 },300)
     }else if(EntryStorageKey && EntryStorageKeys.includes(EntryStorageKey)){
-        console.log('{EntryFlatList says} storage key from Main passed all the way from the entry in TextArea already exists:', EntryStorageKey)
+        log.info('{237: EntryFlatlist => UseEffect says} storage key from Main passed all the way from the entry in TextArea already exists:', EntryStorageKey)
         setTimeout(() => {
             EStorageKeyCheck()
          },300)
     }
 
-},[EntryStorageKey,items])
+},[EntryStorageKey, route.params])
 
 useEffect(()=>{
-    console.log('{EntryFlatlist useEffect says} remaining keys:',EntryStorageKeys)
+    log.info('{246: EntryFlatlist => useEffect says} remaining keys:',EntryStorageKeys)
 },[EntryStorageKeys])
 
 // STORE THE KEY VALUE
 const storeData = async (key: string, value: NoteData): Promise<void> => {
     try {
       const jsonValue = JSON.stringify(value);
-      console.log(jsonValue)
+      log.info(jsonValue)
       await AsyncStorage.setItem(key, jsonValue);
     } catch (error) {
-      console.error("Error saving data", error);
+      log.error("{256: EntryFlatlist => StoreData says} Error saving data", error);
     }
   };
 
@@ -252,12 +269,12 @@ const storeData = async (key: string, value: NoteData): Promise<void> => {
       if (jsonValue != null) {
         const parsedValue = JSON.parse(jsonValue) as NoteData;
         
-       console.log('input value:', parsedValue.date);  // Logs just the 'input' value, e.g., 'some value'
+       log.info('input value:', parsedValue.date);  // Logs just the 'input' value, e.g., 'some value'
         return parsedValue;
       }
       return null;
     } catch (error) {
-      console.error("Error retrieving data", error);
+      log.error("{273: EntryFlatlist => getData says} Error retrieving data", error);
       return null;
     }
   };
@@ -267,7 +284,7 @@ const storeData = async (key: string, value: NoteData): Promise<void> => {
 const resetData = async (): Promise<void> => {
     try {
     //   const jsonValue = await AsyncStorage.getItem(key);
-    //   console.log('item to be removed:',  key,entryKey)
+    //   log.info('item to be removed:',  key,entryKey)
 
       const keys = await AsyncStorage.getAllKeys();
         if(keys != null){
@@ -282,7 +299,7 @@ const resetData = async (): Promise<void> => {
        
     //   }
     } catch (error) {
-      console.error("Error resetting data", error);
+      log.error("{298: EntryFlatlist => resetData says} Error resetting data", error);
     }
   };
 
@@ -290,7 +307,7 @@ const resetData = async (): Promise<void> => {
   const reset = () =>{
 
       if(newItemCount == 0){
-        console.log('nothing to reset')
+        log.info('{306: EntryFlatlist => reset says} nothing to reset')
         return
       }
       const entryStorageKey = `entry${newItemCount}`
@@ -343,7 +360,7 @@ const increment = () => {
                                 onPress: () =>{
                                     setIsCollapsed(true)
                                     setArchiveCount(archiveCount + 1)
-                                    console.log('total archives:', archiveCount)
+                                    log.info('{358: EntryFlatlist => increment says} total archives:', archiveCount)
                                 },
                                 style:'default'
                             },
@@ -376,7 +393,7 @@ const increment = () => {
                 //scroll to new item added only after 1 item DISABLED ATM FOR TESTING PURPOSES
                 if(newItemCount - 1 > 0 && !disableScrollTo){
                     const index = newItemCount - 1
-                    console.log('index to scroll to:',index)
+                    log.info('{391: EntryFlatlist => increment says} index to scroll to:',index)
                     //timeout needed in order to go to last index after item is rendered
                     setTimeout(()=>{
                         flatListref.current?.scrollToIndex({index:index})
@@ -417,7 +434,7 @@ const loadEntryKeys = async () =>{
         }
 
     })
-    console.log('loaded entry keys')
+    log.info('{433: EntryFlatlist => loadEntryKeys says} loaded entry keys')
 }
 
 
@@ -431,7 +448,7 @@ useEffect(()=>{
 // THE ITEM PASSES UNIQUE STORAGE KEY TO EACH COMPONENT TO CREATE SEPARATE ASYNCSTORAGE INSTANCES
 const renderItem = ({item}: {item: NoteData}) => {
     // if the item limit has hit 30
-    console.log('render item:',item)
+    log.info('{451: EntryFlatlist => renderItem says} render item:',item)
     
     return(
         <ItemComponent item={item} EntryStorageKeys={EntryStorageKeys} navigation={navigation}/>
@@ -464,15 +481,15 @@ const retrieveData = async (): Promise<void>  => {
         return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
       });
 
-    console.log('new array:',itemKeys)
+    log.info('{484: EntryFlatlist => retrieveData says} new array:',itemKeys)
 
     //loop through each key in the filtered array
     itemKeys.forEach(async (key, index)=>{
-        console.log(key, index)
+        log.info('{484: EntryFlatlist => retrieveData says}', key, index)
 
         // SET ITEM COUNT TO FINAL ITEM
         if(index == itemKeys.length - 1){
-            console.log('this is the last item:', key,index)
+            log.info('{492: EntryFlatlist => retrieveData says} this is the last item:', key,index)
             const ItemCount = key.split('_')[1] //get the item count at the end
             setItemCount(parseInt(ItemCount)) //convert string to int because setItemCount expects a number
             setTotalItemCount(parseInt(ItemCount))
@@ -500,26 +517,41 @@ useEffect(() =>{
 
 
 useEffect(()=>{
-    console.log('focus status from entry flatlist:', isFocused)
+    log.info('{516: EntryFlatlist => useEffect says} focus status from entry flatlist:', isFocused)
 },[isFocused])
 
 useEffect(() =>{
-    console.log('{EntryFlatList.tsx says} items should get added:', items)
+    log.info('{520: EntryFlatList => useEffect says} items should get added:', items)
 },[items])
 
 
     return(
 
         <View>
-            <Pressable onPressIn={() => setIsFocused(true)} onPressOut={() => increment()}> 
-            <View className='border-2 rounded-lg flex flex-row items-center' style={{marginTop:20, padding:12, borderColor:isFocused?'green':themeType.textPrimary}}>
-            <Feather style={{marginTop:4, marginRight:6}} name="plus-circle" size={24} color={isFocused?'green' : themeType.textPrimary} />
-            <Text style={{fontSize:16, marginTop:4, color:isFocused?'green' : themeType.textPrimary}}>Add Entry</Text>
+            <LinearGradient
+            colors={isFocused?['#23f707','#5fc752','#00bc7d']:['#919191', '#737373', '#bfbfbf']}
+            // style={{borderWidth:2, padding:15, borderRadius:10, borderColor:}}
+            style={styles.gradientWrapper}
+            >
+            <View style={styles.innerContent}>
+                <LinearGradient
+                        colors={['#404952','#505b66','#657482']}
+                        style={styles.gradientWrapper}
+                        >
+                <Pressable onPressIn={() => setIsFocused(true)} onPressOut={() => increment()}> 
+                    <View className=' flex flex-row items-center' style={{padding:12, borderColor:isFocused?'lime':themeType.textPrimary}}>
+                    <Feather style={{marginTop:4, marginRight:6}} name="plus-circle" size={24} color={isFocused?'lime' : themeType.textPrimary2} />
+                    <Text style={{fontSize:16, marginTop:4, color:isFocused?'lime' : themeType.textPrimary2}}>Add Entry</Text>
+                    </View>
+                </Pressable>
+                </LinearGradient>
             </View>
-            </Pressable>
+            </LinearGradient>
             {newItemCount > 0?
-                <View>
-                <Button onPress={reset} title='Clear' />
+                <View className='flex w-full justify-center items-center mt-4'>
+                <Pressable onPress={reset}>
+                    <Text style={{fontFamily:'ScienceGothic-Regular', color:'#00bc7d'}}>CLEAR</Text>
+                </Pressable>
                 </View>
             :null}
         
@@ -532,7 +564,7 @@ useEffect(() =>{
                         data={items}
                         renderItem={renderItem}
                         keyExtractor={item => item.id}
-                        className='w-full h-3/4 pb-10'
+                        className='w-full h-[80%] pb-10'
                     
                     />
 
@@ -566,3 +598,26 @@ useEffect(() =>{
         
     )
 }
+
+const styles = StyleSheet.create({
+    gradientWrapper: {
+        padding: 1, // This defines the border thickness
+        borderRadius: 12, // Apply border radius to the gradient
+        overflow: 'hidden', // Essential for radius to work correctly
+        
+      },
+      innerContent: {
+        
+        backgroundColor: '', // Inner background color (make transparent to show gradient)
+        borderRadius: 8, // Slightly less than wrapper radius
+        padding: 4,
+        shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 1,
+      shadowRadius:2,
+      }
+
+})

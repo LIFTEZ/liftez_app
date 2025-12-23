@@ -5,6 +5,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../src/types';
 import TextArea from '@/components/TextArea';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import log from '@/src/utils/Logger';
 
 type EditScreenProps = NativeStackScreenProps<RootStackParamList, 'Edit'>;
 
@@ -47,14 +48,14 @@ export default function Edit({navigation, route}: EditScreenProps){
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', async (e) => {
 
-            console.log('screen removed event:', e)
+            log.info('screen removed event:', e)
             //go back is triggered by a POP type action
             if(e.data.action.type === 'POP'){
-                console.log('this was triggered by the go back button')
+                log.info('{53: EditScreen says} this was triggered by the go back button')
                 const keys  = await AsyncStorage.getAllKeys()
                 let entryCount:number = 0
                 keys.forEach((key, index)=>{
-                    console.log(key)
+                    log.info(key)
                     //if the storage key from flatlist exists in the asyncstorage then there is an entry with data
                     const keyType = key.split('_')[0]
                     
@@ -62,7 +63,7 @@ export default function Edit({navigation, route}: EditScreenProps){
                     if(index == keys.length - 1){
                         //no entries exist
                         if(entryCount == 0){
-                            console.log('no entries exist pushing empty key to Main')
+                            log.info('{65: EditScreen says} no entries exist pushing empty key to Main')
                             const emptyStorageKey:string = ''
                             navigation.navigate('Main', {entryStorageKey: emptyStorageKey });
                         }
@@ -70,14 +71,14 @@ export default function Edit({navigation, route}: EditScreenProps){
                     
                     if(keyType == 'entry'){
                         entryCount+=1
-                        console.log('entry key found')
-                        console.log('storage key:',storagekey)
+                        log.info('{73: EditScreen says} entry key found')
+                        log.info('{74: EditScreen says} storage key:',storagekey)
                         if(key == storagekey && keys.includes(storagekey)){
-                            console.log('{Editscreen says} data exists in this entry:', key)
+                            log.info('{76: Editscreen says} data exists in this entry:', key)
                             navigation.navigate('Main', {entryStorageKey: storagekey });
                         }
                         else if(!keys.includes(storagekey)){
-                            console.log('{Editscreen says} old key exists with no data must remove:', storagekey)
+                            log.info('{80: Editscreen says} old key exists with no data must remove:', storagekey)
                             navigation.navigate('Main', {entryStorageKey: storagekey });
                         }
                         
@@ -98,7 +99,7 @@ export default function Edit({navigation, route}: EditScreenProps){
 
 
     if(route.params)
-    console.log('route param exists:', storagekey)
+    log.info('{101: EditScreen says} route param exists:', storagekey)
     return(
         // TextArea expects the storageKey prop to be passed to it
         <TextArea STORAGE_KEY={storagekey} ></TextArea>

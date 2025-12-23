@@ -23,7 +23,7 @@ const {theme, themeType, ToggleTheme } = useTheme();
                    <Pressable style={styles.themeButton} onPressOut={()=>ToggleTheme()}>
                     {theme == 'light'?
                       <MaterialIcons className='mb-2' name="light-mode" size={32} color="#f0c51a" />
-                      :<MaterialIcons className='mb-2' name="dark-mode" size={32} color="#ebeadd" />
+                      :<MaterialIcons className='mb-2' name="dark-mode" size={32} color="#fbf9de" />
                     }
                    </Pressable>
                 </View>
@@ -34,7 +34,8 @@ const {theme, themeType, ToggleTheme } = useTheme();
         <Stack.Screen name="Edit" component={Edit}  options={{
             headerBackTitle:'Back',
             title:'',
-            headerStyle:{backgroundColor:themeType.headerBg}
+            headerStyle:{backgroundColor:themeType.headerBg},
+            headerTintColor:'#00bc7d'
         }}/>
       </Stack.Navigator>
     
