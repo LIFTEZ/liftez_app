@@ -6,8 +6,7 @@ import EditInput from './components/EditInput';
 import TextArea from './components/TextArea';
 import { NavigationContainer } from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
-import AppNavigator from './src/navigation/MealsNavigator'
-import TabNavigator from './src/navigation/tabnavigator';
+import TabNavigator from './src/navigation/TabNavigator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeProvider, useTheme } from './src/ThemeContext';
 import "./global.css"
