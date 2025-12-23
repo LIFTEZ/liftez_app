@@ -2,12 +2,8 @@ import React, {useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar'
 import { StyleSheet, Text, View, TextInput} from 'react-native';
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
-import EditInput from './components/EditInput';
-import TextArea from './components/TextArea';
 import { NavigationContainer } from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import TabNavigator from './src/navigation/TabNavigator';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeProvider, useTheme } from './src/ThemeContext';
 import "./global.css"
 import * as Font from 'expo-font'

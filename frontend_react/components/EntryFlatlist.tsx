@@ -610,7 +610,7 @@ useEffect(() =>{
                 </View>
             :null}
         
-            <View className='flex w-full justify-center items-center mt-10'>
+            <View className='flex w-full justify-center items-center mt-10 pb-24'>
             {newItemCount == 0 ?
                 <Text style={{color:themeType.textPrimary}}>No Entries to list</Text>:(<>
                     {/* FLATLIST OF ITEMS */}
