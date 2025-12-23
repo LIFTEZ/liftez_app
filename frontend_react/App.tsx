@@ -6,7 +6,8 @@ import EditInput from './components/EditInput';
 import TextArea from './components/TextArea';
 import { NavigationContainer } from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
-import AppNavigator from './src/navigation/navigator'
+import AppNavigator from './src/navigation/MealsNavigator'
+import TabNavigator from './src/navigation/tabnavigator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeProvider, useTheme } from './src/ThemeContext';
 import "./global.css"
@@ -18,7 +19,7 @@ function ThemedSafeArea() {
 
   return (
     <SafeAreaView  className='w-full h-full' style={{ backgroundColor: themeType.headerBg }}>
-      <AppNavigator/>
+      <TabNavigator/>
     </SafeAreaView>
   );
 }

@@ -473,7 +473,7 @@ useLayoutEffect(() => {
                         <Text className='text-xl ' style={{color:themeType.textPrimary}}>Clear</Text>
                         </TouchableOpacity>
                         :null}
-                    { isVisible ? 
+                    { isVisible? 
                     <TouchableOpacity className='' onPress={onPress}>
                         <Text style={{color:'#00bc7d'}}className='text-xl ml-6'>Done</Text>
                     </TouchableOpacity> : null
@@ -481,7 +481,8 @@ useLayoutEffect(() => {
                     </View>
                 </View>
             ),
-            title: title.toUpperCase()
+            title: title.toUpperCase(),
+            headerTintColor: '#00bc7d'
         });
     },300)
 }, [isVisible, navigation, inputValue]); // Re-run when isVisible changes

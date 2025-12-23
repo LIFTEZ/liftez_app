@@ -36,23 +36,25 @@ const{theme, themeType} = useTheme()
  *   this means there is a entry length or existing problem that prevents a single entry from acquiring its correct status 
  *          - Issue was the useEffect didn't have the correct dependency required for rerender which was route.params
  *
- * AFTER EAT:
+ * CURRENTLY WORKING ON:
+ * 
+ * 
+ * TOMORROW MORNING:
+ * - implement archiving ****
+ * - start working on Regimen Builder following the ideas in my note in Notes App
+ * 
+ * 
  * COMPLETED - continue adding line number and function name to log {26: EntryFlatList says => <function name>}
  * COMPLETED - checkout react native logs and see if I can replace log.infos with that
- * - commit stylistic changes and bug fixes
- * - create new branch for TextArea fix first and then archival feature
- * - implement archiving
+ * COMPLETED - commit stylistic changes and bug fixes
+ * COMPLETED - create new branch for archival feature
  * 
  * 
- * CURRENTLY WORKING ON:
+ * 
  * COMPLETED (for the most part) - adding styles to everything, work on the buttons next make them 3d give them some personality starting with border gradients
  * 
  * - NEXT: 
- *       - create a way to archive all the entries every 30 days
- *          atm - achieved but only hard coded temporarily for the first 30 entries
- *        if i want a constant archive of every 30 days then I gotta implement archive count check with IDs and bunch of other
- *        stuff
- *       - add conditional for date so if entry is same date as current date you can't add another entry
+ *    COMPLETED - add conditional for date so if entry is same date as current date you can't add another entry
  *              - use the development variable to control this, if development is set to false then this condition should be present
  *       - Follow Grok instructions of getting a rich text editor module/wrapper for TextInput so I can add text formatting per character
  * 
@@ -80,6 +82,10 @@ const{theme, themeType} = useTheme()
  *  
  * Future:
  * COMPLETED - Going to need date functionality so the date is attached to the entry
+ * 
+ * - Maybe add additional optional parameter for NoteData interface called SleepQuality or SleepDuration
+ *   this parameter will be displayed above the view details button potentially and while not set offers option to 
+ *   set the time you went to sleep the previous night and the time you woke up today and calculate how many hours you got of sleep
  * 
  * - Last modified detection, check if when entry is open if the content changes then return that check just like the storage key
  *   if that check exists then set last modified to date now
@@ -339,6 +345,32 @@ const resetData = async (): Promise<void> => {
 
   }
 
+// PRODUCTION USE, CHECK IF ANY OF THE ENTRY DATES MATCH THE CURRENT DATE, SHOULDNT BE ABLE TO ADD MULTIPLE ENTRIES
+const checkEntryDate = async()=>{
+
+    const keys = await AsyncStorage.getAllKeys()
+
+    let doesTodaysDateExist:boolean = false
+
+    //for of for allowing breaks in an async function
+    for (const key of keys) {
+        const jsonValue = await AsyncStorage.getItem(key)
+        if(jsonValue){
+        const parsedInput = JSON.parse(jsonValue) as NoteData
+            //an entry with the current date exists
+            if(parsedInput.date == now.toLocaleDateString()){
+                log.debug('first instance of this condition', parsedInput)
+                doesTodaysDateExist = true
+                break
+            }
+           
+        }
+       
+    }
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return doesTodaysDateExist
+}
+
 
 const increment = () => {
     Alert.alert(
@@ -347,7 +379,30 @@ const increment = () => {
         [
           {
             text: "Yes",
-            onPress: () => {
+            onPress: async () => {
+                //DATE CHECK ONLY IF PRODUCTION SO DEVELOPMENT VARIABLE MUST BE SET TO FALSE FOR THIS TO SATISFY
+                if(!isDevelopment){
+                    const promise = await checkEntryDate()
+                    if(promise){
+                        Alert.alert(
+                            "", // Dialog Title
+                            "Entry with today\'s date already exists!, you cannot create another entry for today.", // Dialog Message
+                            [
+                                {
+                                   text: "OK",
+                                   onPress: () =>{
+                                    return
+                                    },
+                                   style:'cancel'
+                                }
+                            ]
+                        )
+                        setIsFocused(false)
+                        return
+                    }
+                }
+                
+
 
                 // 30 DAYS CHECK
                 if(newItemCount % archiveItemLimit === 0 && newItemCount > 0){
