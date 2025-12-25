@@ -1,11 +1,11 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {useState, useEffect} from 'react'
 import { RootStackParamList } from '../types';
-import Regimens from '@/screens/RegimenScreen';
 import {Button,Pressable,StyleSheet,Text,TouchableOpacity,View} from 'react-native'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../ThemeContext';
+import RegimensScreen from '@/screens/RegimenScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -15,8 +15,8 @@ const {theme, themeType, ToggleTheme } = useTheme();
 
   return (
     
-      <Stack.Navigator initialRouteName="Regimens">
-        <Stack.Screen name="Regimens" component={Regimens} options={{
+      <Stack.Navigator>
+        <Stack.Screen name="RegimenMain" component={RegimensScreen} options={{
             headerLeft:() => (
                 <View className='flex'>
                    <Pressable style={styles.themeButton} onPressOut={()=>ToggleTheme()}>
@@ -31,7 +31,7 @@ const {theme, themeType, ToggleTheme } = useTheme();
             headerStyle:{backgroundColor:themeType.headerBg},
             headerTintColor:'#00bc7d'
         }}/>
-        
+        {/* ADD RegimensBuild, this is where the Building functionality will occur */}
       </Stack.Navigator>
     
   );

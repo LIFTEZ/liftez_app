@@ -1,10 +1,9 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import MealsNavigator from './MealsNavigator';
+import LoggingNavigator from './LoggingNavigator';
 import RegimensNavigator from './RegimensNavigator';
 import { useTheme } from '../ThemeContext';
+import Octicons from '@expo/vector-icons/Octicons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import Entypo from '@expo/vector-icons/Entypo';
-
 const Tab = createBottomTabNavigator();
 
 
@@ -15,20 +14,20 @@ const {theme, themeType, ToggleTheme } = useTheme();
     return(
         
 
-        <Tab.Navigator initialRouteName='Meals' screenOptions={{
+        <Tab.Navigator initialRouteName='Logging' screenOptions={{
                     // paddingHorizontal:<number> if I want the tab options closer to each other
                 tabBarStyle: { position: 'absolute', height:60, backgroundColor:themeType.headerBg, borderTopColor:'transparent'},
                 tabBarActiveTintColor:'#00bc7d',
                 tabBarIconStyle:{marginTop:10},
                 tabBarLabelStyle:{fontFamily:'ScienceGothic-Regular', fontSize:12, textTransform:'uppercase', width:100,height:30}
         }}>
-                <Tab.Screen name="Meals" component={MealsNavigator} options={{
+                <Tab.Screen name="Logging" component={LoggingNavigator} options={{
                     headerShown:false,
-                    tabBarIcon:function () {return <FontAwesome5 name="utensils" size={24} color={themeType.textPrimary} />},
+                    tabBarIcon:function () {return <Octicons name="log" size={24} color={themeType.textPrimary} />},
                 }} />
                 <Tab.Screen name="Regimens" component={RegimensNavigator} options={{
                     headerShown:false,
-                    tabBarIcon:function () {return <Entypo name="tools" size={24} color={themeType.textPrimary} />}
+                    tabBarIcon:function () {return <FontAwesome5 name="dumbbell" size={24} color={themeType.textPrimary} />}
                 }}/>
 
         </Tab.Navigator>

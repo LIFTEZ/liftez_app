@@ -1,5 +1,5 @@
-import { useEffect, useState,useRef, use } from 'react';
-import {Text, View, Pressable,Button, Alert, FlatList, StyleSheet} from 'react-native'
+import React, { useEffect, useState,useRef, use } from 'react';
+import {Text, View, Pressable,Button, Alert, FlatList, StyleSheet, Modal, ScrollView, NativeSyntheticEvent, NativeScrollEvent, TextInput, BlurEvent, LayoutChangeEvent} from 'react-native'
 import Feather from '@expo/vector-icons/Feather';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '@/src/types';
@@ -8,8 +8,9 @@ import ItemComponent from './Item';
 import { useTheme } from '@/src/ThemeContext';
 import {LinearGradient} from 'expo-linear-gradient'
 import log from '@/src/utils/Logger';
-
-
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 //required to get access to navigation defines the parameters expected to pass from the parent component which is MainScreen.tsx
 type MainScreenProps = NativeStackScreenProps<RootStackParamList, 'Main'>;
@@ -30,17 +31,42 @@ const{theme, themeType} = useTheme()
  *
  * 
  * Issues: 
- * - Keyboard on dismisal still clips the text, not a huge issue but something I'd like to fix if i can
+ * - In TextArea Keyboard on dismisal still clips the text, not a huge issue but something I'd like to fix if i can
+ * 
  * RESOLVED - TextArea scroll to bottom on entry open does not work as it should, it shouldnt be focused on open anyways
  * RESOLVED - for some reason the entry status only updates if I move to another entry then go back to the previous entry that I tried updating,
  *   this means there is a entry length or existing problem that prevents a single entry from acquiring its correct status 
  *          - Issue was the useEffect didn't have the correct dependency required for rerender which was route.params
  *
+ * When coming back from eating
+ * - commit everything
+ * - merge
+ * - apply for jobs for an hour
+ * - start developing Regimens tab
+ * 
+ * 
+ * 
  * CURRENTLY WORKING ON:
  * 
+ * - adding last modified parameter and logic to item component
+ *    actually most of the work will be done in TextArea.tsx
  * 
- * TOMORROW MORNING:
- * - implement archiving ****
+ * COMPLETED - add a textinput field to go to a specific day
+ * COMPLETED - Adding a scroll to top and bottom button for flatlist
+ * 
+ * COMPLETED - Archiving
+ *    RESOLVED - got it to work just need to figure out the styling of the button or how I want to implement it
+ *     - issues
+ *         RESOLVED - entry indexing is wrong at the moment gotta figure out what is causing that 
+ *                   the correct storage key exists it is just updating wrong
+ *          RESOLVED - since im no longer using the items component the animation/status useStates are used across all the items so they all get selected
+ *                   this can probably be solved by triggering a regular function instead and checking the ref style and adjusting accordingly
+ *
+ *  
+ * COMPLETED - implement archiving ****
+ *    - Got the active function and app refresh storage logic for it perfected now just need to implement in Item.tsx
+ * 
+ * 
  * - start working on Regimen Builder following the ideas in my note in Notes App
  * 
  * 
@@ -94,6 +120,11 @@ const{theme, themeType} = useTheme()
  *    - add achievements, titles, scores
  *    - add user profile to manage and display all those attributes above
  * 
+ * - In TextArea.tsx
+ *    - After focused is lost on textinput display button to send update via SMS or Email via AWS services
+ *       - either using SES SNS or some how Twilio for SMS or unless AWS has an SMS service (SNS and End User Messaging combo)
+ *
+ * - MAYBE integrate Grok for the Regimen Builder to help with info on exercises, recommandations, etc 
  * 
  *
  * RESOLVED - Flatlist won't scroll fully
@@ -144,6 +175,7 @@ const removeKey = async (key: string) => {
 
 interface StorageKey{
     input: string
+    lastModified:string
 }
 
 
@@ -194,13 +226,13 @@ const EStorageKeyCheck = async () =>{
 // FLAT LIST COMPONENT LOGIC
 
 //development variables if ever needed
-const isDevelopment:boolean = true
+const isDevelopment:boolean = true //set to true for debugging at the moment @ 8:24 am 12/23/2025
 const disableScrollTo:boolean = false //disable the flatlist scroll to that gives me an error whenever I change newItemCount default from 0 to any number for testing purposes
 
 //get current date
 const now: Date = new Date()
 // item variables
-const[newItemCount, setItemCount] = useState<number>(0)
+const[newItemCount, setItemCount] = useState<number>(0) //change back to 0 when done debugging
 const[totalItemCount, setTotalItemCount] = useState<number | null>(null)
 const[newItemDate, setItemDate] = useState<string>(now.toLocaleDateString())
 const[isFocused, setIsFocused] = useState(false);
@@ -210,7 +242,12 @@ const[isCollapsed, setIsCollapsed] = useState<boolean>(false)
 const[archiveCount, setArchiveCount] = useState<number>(0)
 // refs
 const flatListref = useRef<FlatList>(null)
+const scrollToBottomBtn = useRef<View>(null)
+const scrollToTopBtn = useRef<View>(null)
+const clearBtn = useRef<View>(null)
+const goToIndexInput = useRef<TextInput>(null)
 // const[doesDataExist, retrieveData] = useState<boolean | null>(null);
+
 
 
 
@@ -260,30 +297,40 @@ useEffect(()=>{
 const storeData = async (key: string, value: NoteData): Promise<void> => {
     try {
       const jsonValue = JSON.stringify(value);
-      log.info(jsonValue)
+      log.info('{EntryFlatlist => storeData says',jsonValue)
+      await AsyncStorage.setItem(key, jsonValue);
+    } catch (error) {
+      log.error("{256: EntryFlatlist => StoreData says} Error saving data", error);
+    }
+  };
+// STORE THE ARCHIVE KEY
+const storeArchiveData = async (key: string, value: ArchiveData): Promise<void> => {
+    try {
+      const jsonValue = JSON.stringify(value);
+      log.info('{EntryFlatlist => storeArchiveData says:}',jsonValue)
       await AsyncStorage.setItem(key, jsonValue);
     } catch (error) {
       log.error("{256: EntryFlatlist => StoreData says} Error saving data", error);
     }
   };
 
-// GET THE KEY VALUE NOT IN USE ************** ATM
-  const getData = async (key: string): Promise<NoteData | null> => {
-    try {
-      const jsonValue = await AsyncStorage.getItem(key);
-      // Parse the JSON string back into a User object, or return null if no value
-      if (jsonValue != null) {
-        const parsedValue = JSON.parse(jsonValue) as NoteData;
+// // GET THE KEY VALUE NOT IN USE ************** ATM
+//   const getData = async (key: string): Promise<NoteData | null> => {
+//     try {
+//       const jsonValue = await AsyncStorage.getItem(key);
+//       // Parse the JSON string back into a User object, or return null if no value
+//       if (jsonValue != null) {
+//         const parsedValue = JSON.parse(jsonValue) as NoteData;
         
-       log.info('input value:', parsedValue.date);  // Logs just the 'input' value, e.g., 'some value'
-        return parsedValue;
-      }
-      return null;
-    } catch (error) {
-      log.error("{273: EntryFlatlist => getData says} Error retrieving data", error);
-      return null;
-    }
-  };
+//        log.info('input value:', parsedValue.date);  // Logs just the 'input' value, e.g., 'some value'
+//         return parsedValue;
+//       }
+//       return null;
+//     } catch (error) {
+//       log.error("{273: EntryFlatlist => getData says} Error retrieving data", error);
+//       return null;
+//     }
+//   };
 
 
 // REMOVE THE STORAGE KEY
@@ -371,6 +418,17 @@ const checkEntryDate = async()=>{
     return doesTodaysDateExist
 }
 
+interface ArchiveData{
+    count:number
+    min:number
+    max:number
+    isCollapsed:boolean
+    isColFocused:boolean
+}
+
+
+const [archives, setArchive] = useState<ArchiveData[]>([]) //REQUIRED FOR NON APP REFRESH FUNCTIONALITY
+const [archiveStorageKeys, setArchiveKeys] = useState<string[]>([]) //REQUIRED FOR APP REFRESH LOADING THE ARCHIVE KEYS
 
 const increment = () => {
     Alert.alert(
@@ -406,28 +464,26 @@ const increment = () => {
 
                 // 30 DAYS CHECK
                 if(newItemCount % archiveItemLimit === 0 && newItemCount > 0){
-                    Alert.alert(
-                        "",
-                        "Would you like to archive the last 30 entries?",
-                        [
-                            {
-                                text: "Yes",
-                                onPress: () =>{
-                                    setIsCollapsed(true)
-                                    setArchiveCount(archiveCount + 1)
-                                    log.info('{358: EntryFlatlist => increment says} total archives:', archiveCount)
-                                },
-                                style:'default'
-                            },
-                            {
-                                text: "No",
-                                onPress: () =>{
-                                    return
-                                },
-                                style:'cancel'
-                            }
-                        ]
-                    )
+                    setIsCollapsed(true)
+                                   
+                    const ARCHIVE_KEY = `archive_${archiveCount + 1}`
+                    const max = 1 + (archiveItemLimit * (archiveCount + 1))
+                    const min = max - 30
+                    storeArchiveData(ARCHIVE_KEY, {count: archiveCount + 1, min:min, max:max, isCollapsed:false, isColFocused:false})
+                    setArchiveCount(archiveCount + 1)
+                    const newArchive: ArchiveData ={
+                        count: archiveCount + 1,
+                        min: min,
+                        max: max,
+                        isCollapsed:false,
+                        isColFocused:false,
+                        
+                    }
+                    setArchive(prevArchives => [...prevArchives, newArchive])
+                    setArchiveKeys(prevKeys => [...prevKeys, ARCHIVE_KEY])
+                    log.info('{358: EntryFlatlist => increment says} total archives:', archiveCount + 1)
+                    
+                    
                 }
 
 
@@ -475,21 +531,29 @@ const increment = () => {
 
 
 // load the keys into the EntryStorageKeys useState array
-const loadEntryKeys = async () =>{
+const loadEntryKeys = async () :Promise<void> =>{
 
     const keys = await AsyncStorage.getAllKeys()
-
+    let keyCount: number = 0
     keys.forEach((key) =>{
 
         //get the key type
         const keyType = key.split('_')[0]
         if(keyType == 'entry'){
-            if(!EntryStorageKeys.includes(key))
+            if(!EntryStorageKeys.includes(key)){
             setEntryStorageKeys(prevKeys => [...prevKeys,key])
+            keyCount+=1
+            }
         }
 
     })
-    log.info('{433: EntryFlatlist => loadEntryKeys says} loaded entry keys')
+    if(keyCount > 0){
+    log.info(`{433: EntryFlatlist => loadEntryKeys says} loaded ${keyCount} entry keys`)
+    }
+    else{
+    log.info('{433: EntryFlatlist => loadEntryKeys says} no entry keys to load')
+    }
+
 }
 
 
@@ -499,17 +563,294 @@ useEffect(()=>{
 
 },[])
 
+
+const loadArchiveKeys = async ()  =>{
+
+    //reset the local usestate array
+    setArchive([])
+    //REFACTOR REDO THIS LOGIC AFTER EATING
+    //initiate archive count variable
+    let archCount:number = 0
+    // initiate archive array
+    let archiveKeys:Array<string> = []
+    //get all the keys
+    const keys = await AsyncStorage.getAllKeys()
+    keys.forEach(async (key)=>{
+
+        //make sure key is an archive key
+        const keyType = key.split('_')[0]
+        if(keyType == 'archive'){
+            //push to non usestate array
+            archiveKeys.push(key)
+            
+        }
+
+    })
+    //SORT THE ARRAY NUMERICALLY
+    archiveKeys.sort((a, b) => {
+        return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+      });
+
+    log.info('{592: EntryFlatlist => loadArchiveKeys says} new array:',archiveKeys)
+
+    
+    //loop through each key in the filtered array
+    archiveKeys.forEach(async (key, index)=>{
+        log.info('{484: EntryFlatlist => loadArchiveKeys  says}', key, index)
+        if(!archiveStorageKeys.includes(key)){
+        setArchiveKeys(prevKeys => [...prevKeys,key])
+        }
+        
+        //get the json value of the storage key
+        const jsonValue = await AsyncStorage.getItem(key)
+        if(jsonValue){
+            const archive = JSON.parse(jsonValue) as ArchiveData
+            archCount+=1 //increment count
+            setArchiveCount(archCount)
+            setArchive(prevArchives => [...prevArchives, archive])
+        }
+    
+    
+    })
+    log.info('EntryFlatList => useEffect after loadArchiveKeys says:', archives)
+
+}
+
+
+
+//GET AND SET ARCHIVE KEYS ON LOAD
+useEffect(()=>{
+    //timeout required for collapsible render
+    setTimeout(()=>{
+        loadArchiveKeys() 
+    },300)
+  
+    
+},[])
+
+useEffect(()=>{
+    setTimeout(()=>{
+        log.info('{639: EntryFlatlist => useEffect says} archive keys:', archiveStorageKeys, archives)
+        log.debug('640: EntryFlatlist => useEffect says archive count:', archiveCount)
+    },500)
+   
+},[archiveStorageKeys,archives, archiveCount])
+
 // FLATLIST ITEM TO RENDER, EACH ITEM IS AN ENTRY THAT WILL GO TO THE EDIT SCREEN WHICH HAS THE TEXTAREA COMPONENT
 // THE ITEM PASSES UNIQUE STORAGE KEY TO EACH COMPONENT TO CREATE SEPARATE ASYNCSTORAGE INSTANCES
-const renderItem = ({item}: {item: NoteData}) => {
-    // if the item limit has hit 30
-    log.info('{451: EntryFlatlist => renderItem says} render item:',item)
-    
-    return(
-        <ItemComponent item={item} EntryStorageKeys={EntryStorageKeys} navigation={navigation}/>
-    )
+const refsArray = useRef<View[] | null[]>([])
 
-   
+let status:boolean = false
+const toggleFocus = (count:number)=>{
+
+    const newArray = archives.map((archive, index) => {
+        if (index === count - 1) {
+
+            
+            if(!archive.isColFocused){
+                status = true
+            }
+            else{
+                status = false
+            }
+        
+          // If the index matches, create a NEW object with the updated property
+          return { ...archive,  isColFocused:status };
+        }
+        // Otherwise, return the original item
+        return archive;
+      });
+    setArchive(newArray)
+}
+
+const toggleCollapse = (count: number) =>{
+    
+    archives.forEach((archive, index) =>{
+        log.debug(index)
+        //make sure correct archive button is being hit
+        if(archive.count == count){
+
+
+            const newArray = archives.map((archive, index) => {
+                if (index === count - 1) {
+        
+                  // If the index matches, create a NEW object with the updated property
+                  return { ...archive,  isColFocused:status };
+                }
+                // Otherwise, return the original item
+                return archive;
+              });
+            setArchive(newArray)
+
+
+            //loop thru refs
+            refsArray.current.forEach((ref,index ) =>{
+                //set item count from index
+                const itemC = index + 1
+                //same conditional as the renderItem
+                if(itemC >= archive.min && itemC < archive.max){
+                    
+
+                    //UPDATE THE OBJECT LOCALLY
+                    let status:boolean = archive.isCollapsed
+                    if(!archive.isCollapsed){
+                        status = true
+                    }else{
+                        status = false
+                    }
+                    //UPDATE THE OBJECT IN STORAGE
+                    const ARCHIVE_KEY = `archive_${archive.count}`
+                    const max = 1 + (archiveItemLimit * (archive.count))
+                    const min = max - 30
+                    storeArchiveData(ARCHIVE_KEY, {count: archive.count, min:min, max:max, isCollapsed:status, isColFocused:false})
+
+                    ref?.setNativeProps({
+                        style:{
+                            display:!archive.isCollapsed?'none':'flex' //if false set to none because the collapse status will be updated to true
+                        }
+                    }) 
+                
+                    const newArray = archives.map((archive, index) => {
+                        if (index === count - 1) {
+                          // If the index matches, create a NEW object with the updated property
+                          return { ...archive,  isCollapsed:status };
+                        }
+                        // Otherwise, return the original item
+                        return archive;
+                      });
+                    setArchive(newArray)
+                    log.debug('new array', newArray)
+                    log.debug(archives)
+                    
+                     
+                }
+            
+            
+            })
+            
+        }
+    })
+
+}
+
+const [height, setHeight] = useState<number>(0);
+
+
+//used for flatlist performance and rendering, triggered by items when archives do NOT exist
+const onLayout = (event: LayoutChangeEvent) => {
+    const{height} = event.nativeEvent.layout
+    setHeight(height);
+    // log.debug('height of entry item:', height)
+
+  }
+
+// counter function for onLayout prop on the View when archives exist, height should usually be set already by then
+const heightIsSet = () => {
+    return
+}
+
+const renderItem = ({item}: {item: NoteData}) => {
+
+
+    return(
+        <View>
+        {archives.length > 0?
+        (<>
+        {/* ARRAY MAP LOOP */}
+        {Object.entries(archives).map(([key,archive]) => (
+        // needed for the setup when using (<></>) 
+          <React.Fragment key={key}>
+            {item.itemCount == 1 && archive.count == 1 && archive.isCollapsed?
+            <View className='flex justify-center items-center'>
+            <Text style={{color:'#00bc7d', fontFamily:'ScienceGothic-Regular'}}>*hold to collapse/expand*</Text>
+            </View>
+            :null}
+                {item.itemCount >= archive.min && item.itemCount < archive.max?
+                    (<>    
+                    <View key={item.id}>
+                    <View
+                    onLayout={height == 0? onLayout:heightIsSet}
+                    ref={(ref) => { refsArray.current[parseInt(item.id)] = ref; }}
+                    style={{display:!archive.isCollapsed? 'flex' : 'none'}}>
+                        <ItemComponent item={item} EntryStorageKeys={EntryStorageKeys} navigation={navigation} route={route} />                   
+                    </View>
+                    {item.itemCount == archive.max - 1?
+                        (<>
+                         <View className='mt-2'>
+                        {archive.isCollapsed? (<>
+                            <LinearGradient
+                            colors={archive.isColFocused?['#23f707','#5fc752','#00bc7d']:['#919191', '#737373', '#bfbfbf']}
+                            // style={{borderWidth:2, padding:15, borderRadius:10, borderColor:}}
+                            style={styles.gradientWrapper}
+                            >
+                            <View style={styles.innerContent}>
+                                <LinearGradient
+                                        colors={['#404952','#505b66','#657482']}
+                                        style={styles.gradientWrapper}
+                                        >
+                                <Pressable onPressIn={()=>toggleFocus(archive.count)}  onLongPress={()=>toggleCollapse(archive.count)}> 
+                                    <View className=' flex flex-row justify-center items-center' style={{padding:12, borderColor:themeType.textPrimary}}>
+                                    <Text style={{fontSize:16, marginTop:4, color:themeType.textPrimary2}}>DAYS {archive.min} - {archive.max-1},  LAST DATE: {item.date}</Text>
+                                    </View>
+                                </Pressable>
+                                </LinearGradient>
+                            </View>
+                            </LinearGradient>
+                            <Pressable onPressIn={()=>toggleFocus(archive.count)}   onLongPress={()=>toggleCollapse(archive.count)} > 
+                            <View className='flex flex-row justify-center items-center mt-2'  >
+                                    <View>
+                                    <MaterialIcons name="expand" size={29} color={themeType.icon} />
+                                    </View>
+                                    <View >
+                                    <Text className='border-1 p-1' style={{color:archive.isColFocused?'lime':'#00bc7d', fontFamily:'ScienceGothic-Regular', }} >EXPAND DAYS {archive.min} - {archive.max - 1}</Text>
+                                    </View>
+                                    <View>
+                                    <MaterialIcons name="expand" size={29} color={themeType.icon} />
+                                    </View> 
+                            </View>
+                            </Pressable>
+                            </>) 
+                        : (<>
+                            <Pressable onPressIn={()=>toggleFocus(archive.count)}  onLongPress={()=>toggleCollapse(archive.count)} > 
+                            <View className='flex flex-row justify-center items-center'>
+                               
+                                    <View>
+                                        <MaterialCommunityIcons name="arrow-collapse-vertical" size={29} color={themeType.icon} />
+                                    </View>
+                                    <View className=''>
+                                    <Text style={{color:archive.isColFocused?'lime':'#00bc7d', fontFamily:'ScienceGothic-Regular'}} >COLLAPSE DAYS {archive.min} - {archive.max - 1}</Text>
+                                    </View>
+                                    <View>
+                                        <MaterialCommunityIcons name="arrow-collapse-vertical" size={29} color={themeType.icon} />
+                                    </View> 
+                                
+                            </View>
+                            </Pressable>    
+                            </>)
+                        }
+                        </View>
+                        </>)
+                    :null}
+                    </View>
+                    </>)
+                //making sure the key or archive.count equals the last index of the archives array so it doesn't register the mins and maxes of the previous archives
+                :item.itemCount >= archive.max && archive.count == archives.length?
+                (<>
+                <ItemComponent item={item} EntryStorageKeys={EntryStorageKeys} navigation={navigation} route={route} />
+                </>):null}
+           
+           
+            </React.Fragment>
+        ))}
+        {/* END OBJECT ARRAY MAP */}
+        </>)
+        // NO ARCHIVES EXIST
+        :<View onLayout={onLayout}> 
+        <ItemComponent item={item} EntryStorageKeys={EntryStorageKeys} navigation={navigation} route={route} />
+        </View>}
+            
+        </View>  
+    )
 }
 
 
@@ -540,12 +881,13 @@ const retrieveData = async (): Promise<void>  => {
 
     //loop through each key in the filtered array
     itemKeys.forEach(async (key, index)=>{
-        log.info('{484: EntryFlatlist => retrieveData says}', key, index)
+        log.info('{885: EntryFlatlist => retrieveData says}', key, index)
 
         // SET ITEM COUNT TO FINAL ITEM
         if(index == itemKeys.length - 1){
             log.info('{492: EntryFlatlist => retrieveData says} this is the last item:', key,index)
             const ItemCount = key.split('_')[1] //get the item count at the end
+            //const ItemCount = '268' //hard code for debug purposes 58, 88, 118, 148, 178, 208, 238
             setItemCount(parseInt(ItemCount)) //convert string to int because setItemCount expects a number
             setTotalItemCount(parseInt(ItemCount))
         }
@@ -576,8 +918,109 @@ useEffect(()=>{
 },[isFocused])
 
 useEffect(() =>{
-    log.info('{520: EntryFlatList => useEffect says} items should get added:', items)
+    log.info('{922: EntryFlatList => useEffect says} items should get added:', items)
 },[items])
+
+
+// FLATLIST SCROLLING FUNCTIONS/LOGIC
+const Scroll2Top = () =>{
+
+    flatListref.current?.scrollToOffset({offset: 0})
+
+}
+
+const Scroll2Bottom = () => {
+
+    log.debug('total item count:', newItemCount - 1)
+    flatListref.current?.scrollToIndex({index: newItemCount - 1}) //scroll to index works with getItemLayout prop being set on FlatList
+
+    
+}
+
+const [input,setText] = useState<string>('')
+// const [contentHeight, setContentHeight] = useState<number>(0) // (DEPRECATED) was used to prevent error on initial load that index is out of render view
+                                                                 // solved by using getItemLayout prop and passing the height of each item
+const goToIndex = (e: BlurEvent) =>{
+    
+      if(input == '')
+        return
+
+      if(parseInt(input) - 1 <= -1){
+        setText('')
+        return
+      }
+
+      if(parseInt(input) - 1 > newItemCount){
+        Alert.alert
+        (   'INVALID INPUT',
+            `This day does not exist, the most recent or current day is ${newItemCount}!`
+        )
+        setText('')
+        return
+      }
+
+      flatListref.current?.scrollToIndex({index:parseInt(input) - 1})
+      setText('')
+}
+
+
+
+
+const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+
+    const scrollDistance = event.nativeEvent.contentOffset.y
+    // setContentHeight(event.nativeEvent.contentSize.height)
+
+    if(scrollDistance >= 100){
+        //CLEAR BUTTON ONLY EXISTS FOR DEVELOPMENT PURPOSES
+        clearBtn.current?.setNativeProps({
+            style:{
+                display:'none'
+            }
+        })
+        goToIndexInput.current?.setNativeProps({
+            style:{
+                display:'flex'
+            }
+        })
+        scrollToBottomBtn.current?.setNativeProps({
+            style:{
+                display:'flex'
+            }
+        })
+        scrollToTopBtn.current?.setNativeProps({
+            style:{
+                display:'flex'
+            }
+        })
+  
+    }
+    else if(scrollDistance <= 0){
+        //CLEAR BUTTON ONLY EXISTS FOR DEVELOPMENT PURPOSES
+        clearBtn.current?.setNativeProps({
+            style:{
+                display:'flex'
+            }
+        })
+        goToIndexInput.current?.setNativeProps({
+            style:{
+                display:'none'
+            }
+        })
+        scrollToBottomBtn.current?.setNativeProps({
+            style:{
+                display:'none'
+            }
+        })
+        scrollToTopBtn.current?.setNativeProps({
+            style:{
+                display:'none'
+            }
+        })
+        
+    }
+    
+}
 
 
     return(
@@ -602,52 +1045,64 @@ useEffect(() =>{
                 </LinearGradient>
             </View>
             </LinearGradient>
+            <View className='flex flex-row justify-between items-center'>
+            <View ref={scrollToTopBtn} style={{display:'none'}}>
+            <Pressable className='mt-4' onPress={Scroll2Top}>
+            <FontAwesome name="angle-double-up" size={40} color="#00bc7d" />
+            </Pressable>
+            </View>
+            <View ref={goToIndexInput} style={{display:'none'}} className='mt-4'>
+                <TextInput className='border-2 rounded-lg p-2 border-emerald-500 text-emerald-500 w-52 text-center'
+                style={{backgroundColor:themeType.screenBg}} 
+                placeholderTextColor='#a8a8a8'
+                value={input} 
+                onChangeText={setText}
+                onBlur={goToIndex} 
+                placeholder='type in a day number'
+                selectionColor={'#52eb34'}/>
+            </View>
             {newItemCount > 0?
-                <View className='flex w-full justify-center items-center mt-4'>
+                //CLEAR BUTTON ONLY EXISTS FOR DEVELOPMENT PURPOSES REMOVE OR COMMENT OUT ONCE READY FOR PRODUCTION
+                <View
+                ref={clearBtn} 
+                className='flex w-full items-center mt-4'>
                 <Pressable onPress={reset}>
                     <Text style={{fontFamily:'ScienceGothic-Regular', color:'#00bc7d'}}>CLEAR</Text>
                 </Pressable>
                 </View>
             :null}
+            <View ref={scrollToBottomBtn} style={{display:'none'}}>
+            <Pressable className='mt-4' onPress={Scroll2Bottom}>
+            <FontAwesome name="angle-double-down" size={40} color='#00bc7d' />
+            </Pressable>
+            </View>
+            </View>
+            
         
-            <View className='flex w-full justify-center items-center mt-10 pb-24'>
+            <View className='flex w-full justify-center items-center mt-10 pb-48'>
             {newItemCount == 0 ?
                 <Text style={{color:themeType.textPrimary}}>No Entries to list</Text>:(<>
                     {/* FLATLIST OF ITEMS */}
                     <FlatList
                         ref={flatListref}
+                        onScroll={handleScroll}
+                        initialNumToRender={10}
+                        maxToRenderPerBatch={10}
+                        scrollEventThrottle={16}
                         data={items}
                         renderItem={renderItem}
                         keyExtractor={item => item.id}
                         className='w-full h-[80%] pb-10'
+                        getItemLayout={(items, newItemCount) => ({length: height, offset: height * newItemCount, index: newItemCount})}
+                        
+                        
                     
                     />
-
-                    {/* <Text>Entry Created On:<Text> {newItemDate}</Text></Text>
-                    <Text>DAY: {newItemCount}</Text> */}
                 </>)
                 
                 
             }
             </View>
-        
-        
-        
-            {/* THIS WILL BE THE ONPRESS FUNCTION SETUP FOR THE FLATLIST ITEM, STORAGEKEY WILL PASS UNIQUE ID */}
-            <View>
-            
-            </View>
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         </View>
        
         
@@ -673,6 +1128,68 @@ const styles = StyleSheet.create({
       },
       shadowOpacity: 1,
       shadowRadius:2,
-      }
-
+      },
+      centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor:'rgba(255,255,255,.5)'
+      },
+      modalView: {
+        margin: 20,
+        borderRadius: 20,
+        padding: 35,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+      },
+      button: {
+        borderRadius: 20,
+        padding: 10,
+        elevation: 2,
+      },
+      detailsbutton: {
+          backgroundColor:'rgba(29, 41, 61, 0.5)',
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 2,
+            height: 4,
+          },
+          shadowOpacity: .5,
+          shadowRadius: 2,
+      },
+      textStyle: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'left',
+      },
+      modalText: {
+        marginBottom: 15,
+        marginLeft:10,
+      },
+      gradientWrapper2: {
+          padding: 4, // This defines the border thickness
+          borderRadius: 12, // Apply border radius to the gradient
+          overflow: 'hidden', // Essential for radius to work correctly
+          
+        },
+        innerContent2: {
+          flex: 1,
+          backgroundColor: '', // Inner background color (make transparent to show gradient)
+          borderRadius: 8, // Slightly less than wrapper radius
+          padding: 4,
+          shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 1,
+        shadowRadius:2,
+        }
 })

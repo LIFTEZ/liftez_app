@@ -7,7 +7,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../src/types';
 import EntryFlatlist from '@/components/EntryFlatlist';
 import log from '@/src/utils/Logger';
-
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5.js';
 type MainScreenProps = NativeStackScreenProps<RootStackParamList, 'Main'>;
 
 
@@ -27,7 +27,7 @@ export default function Main({navigation, route}: MainScreenProps){
        
             <View className='h-full w-full' style={[styles.container, {backgroundColor: themeType.screenBg}]}>
                 <View className='p-4'>
-                <Text style={[styles.titleText,{color:'#00bc7d'}]}>JP MEAL LOGGING</Text>
+                <Text style={[styles.titleText,{color:'#00bc7d'}]}> MEAL LOGGING <FontAwesome5 name="utensils" size={24} color={themeType.textPrimary} /></Text>
                 </View>
                <EntryFlatlist navigation={navigation} route={route} EntryStorageKey={entryStorageKey}/>
     
@@ -41,7 +41,7 @@ export default function Main({navigation, route}: MainScreenProps){
        
             <View className='h-full w-full' style={[styles.container, {backgroundColor: themeType.screenBg}]}>
                 <View className='p-4'>
-                <Text style={[styles.titleText,{color:'#00bc7d'}]}>JP MEAL LOGGING</Text>
+                <Text style={[styles.titleText,{color:'#00bc7d'}]}>MEAL LOGGING <FontAwesome5 name="utensils" size={24} color={themeType.textPrimary} /></Text>
                 </View>
                <EntryFlatlist navigation={navigation} route={route} />
     

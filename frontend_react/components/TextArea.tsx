@@ -39,46 +39,8 @@ const{theme, themeType} = useTheme()
         }
       };
 
-    listAllKeys()
-    //RETURN FROM EATING
-    /**
-     * NOTE:
-     * - RESOVLED still might be some inconsistency with the scrolling not sure
-     * - RESOLVED (i think) also very bad bouncing when using the space bar alot
-     * 
-     * 
-     * FUTURE THINGS:
-     * Getting font size to work for each individual new line instead of all the text
-     *      - NOT POSSIBLE IN MULTILINE TEXTINPUT
-     *      - react-native-pell-rich-editor or react-native-rich-editor REQUIRED 
-     *          - this will also allow me to add other formatting tools
-     *          - would work with asyncstorage 
-     *               - Serialize the editor's content to a string (e.g., HTML or a JSON array like [{ char: 'a', size: 16 }, { char: 'b', size: 24 }]) on blur or "Done" press.
-     * 
-     * 
-     * 
-     * Issues:
-     * RESOLVED - Line height still cuts off on j g and similar characters
-     * RESOLVED - When focusing on the TextInput it dismisses the keyboard on first attempt for some reason
-     * RESOLVED - Done disappears when keyboard is not fully dismissed on swipe sometimes
-     * NOT NEEDED - Figure out how to save the data on keyboard dismissal
-     * RESOLVED - Keyboard gets stuck now when trying to dismiss it without an abrupt swipe
-     * RESOLVED - Keyboard doesn't smoothly transition out on scrolling up
-     * RESOLVED - Focus status gets set to true on refresh for some reason once data is saved
-     * NOT NEEDED - Still need to make it so the keyboard dismissal causes the data to be saved
-     * RESOLVED scrollview onScroll event is not consistently firing so i can't gauge its value and status 
-     * RESOLVED I THINK - InputAccessory not being fully attached to keyboard, when keyboard dimisses you see a litle margin/gap between them
-     * RESOLVED - Without height set on TextInput I can't scroll it while its focused, but I can scroll the scrollview without autofocusing
-     * RESOLVED - With height set on TextInput I can scroll it while its focused, but keyboard dismiss clips the text and scrolling while the TextInput is not focused
-     *   causes it to autofocus so I can't freely scroll the scrollview
-     * RESOLVED - On focus with nothing saved causes the scrollview to scroll to bottom for some reason causing the caret to go above the header
-     *              -just had to adjust the extrascrollheight on scrollview and the inputHeight buffer
-     * 
-     * 
-     */
-
-
-
+    listAllKeys()    
+    
 
     // Done/save data button visibility
     const[isVisible, setIsVisible] = useState<boolean>(false);
@@ -88,6 +50,7 @@ const{theme, themeType} = useTheme()
     // Input functionality
     const[inputValue, setText] = useState('');
     const[savedValue, getText] = useState('');
+    const[prevInput, setPrevInput] = useState('');
     const[isEditing, setisEditing] = useState<boolean | undefined>(undefined);
     // const[savedValue, getText] = React.useState<string | null>(null); this isn't being used anymore
 
@@ -150,11 +113,15 @@ const{theme, themeType} = useTheme()
     // ASYNCSTORAGE FUNCTIONS
     interface NoteData {
         input: string
+        lastModified: string
       }
       
     // STORE THE KEY VALUE
       const storeData = async (key: string, value: NoteData): Promise<void> => {
         try {
+          if(value.input == ''){
+            value.lastModified = ''
+          }
           const jsonValue = JSON.stringify(value);
           log.info('{155: TextArea => StoreData says}', jsonValue)
           await AsyncStorage.setItem(key, jsonValue);
@@ -195,13 +162,62 @@ const{theme, themeType} = useTheme()
           console.error("{191: TextArea => resetData says} Error resetting data", error);
         }
       };
+
+    const getLastModified = async (key: string): Promise<string> =>{
+
+      let lastModified:string = ''
+       const jsonValue = await AsyncStorage.getItem(key)
+       if(jsonValue){
+        const parsedValue = JSON.parse(jsonValue) as NoteData
+        if(parsedValue.lastModified){
+          lastModified = parsedValue.lastModified
+        }
+       }
+       return lastModified
+    }
+
     
     //  set the text onChangeText and store the data
-    const setTextData = (newText: string) =>{
+    const setTextData = async (newText: string) =>{
+
         // remove existing storage key
         if(newText == ''){
             resetData(STORAGE_KEY)
         }
+
+        let lastModified:string = ''
+        //COMPARE NEWTEXT AGAINST PREVIOUS INPUT
+        if(prevInput){
+          log.debug('{setTextData} prev input exists:', prevInput)
+          //Remove any whitespace
+          if(newText.trim() != prevInput){
+            log.debug('{setTextData} previous input has been modified')
+            const now = new Date
+            const currentDate = now.toLocaleDateString()
+            const timeString = now.toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            })
+            lastModified = currentDate + ' ' + timeString
+          }
+          else{
+            //function for getting the storage key item, getting the attached modified value and setting lastModified to that and returning it
+            lastModified = await getLastModified(STORAGE_KEY)
+          }
+        }
+        else{
+          log.debug('{setTextData} prev input does not exist')
+          const now = new Date
+          const currentDate = now.toLocaleDateString()
+          const timeString = now.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })
+          lastModified = currentDate + ' ' + timeString
+        }
+
 
         
         if(newText.length > 0){
@@ -225,7 +241,10 @@ const{theme, themeType} = useTheme()
                 newText = newString + '   -  '
             }
         }
-        storeData(STORAGE_KEY, {input: newText})
+
+        log.debug('last modified:', lastModified)
+
+        storeData(STORAGE_KEY, {input: newText, lastModified:lastModified})
         getData(STORAGE_KEY).then((data) => {
             if (data) {
               setText(data.input)
@@ -341,6 +360,31 @@ const{theme, themeType} = useTheme()
      * 
      */
     ///////////////////////////////////////////////////////////////////////////////////
+
+    // check storage key value and save the current value of it if it isn't null
+    useEffect(()=>{
+        
+        const getPrevInput = async (): Promise<void> => {
+
+            const jsonValue = await AsyncStorage.getItem(STORAGE_KEY)
+            if(jsonValue){
+              const parsedValue = JSON.parse(jsonValue) as NoteData
+              if(parsedValue.input){
+                log.debug('parsed input', parsedValue.input)
+                setPrevInput(parsedValue.input)
+              }
+              //parse the value and get input and set it as a usestate variable
+              log.debug('value exists save to useState as previous input variable')
+            }
+            else{
+              log.debug('no value exists')
+              return
+            }
+        }
+        getPrevInput()
+        log.debug('prev input:', prevInput)
+
+    },[STORAGE_KEY, prevInput])
     
     // Prevent the Done button from disappearing if the keyboard doesn't fully disappear
     useEffect(()=>{
@@ -473,7 +517,7 @@ useLayoutEffect(() => {
                         <Text className='text-xl ' style={{color:themeType.textPrimary}}>Clear</Text>
                         </TouchableOpacity>
                         :null}
-                    { isVisible? 
+                    { isVisible ? 
                     <TouchableOpacity className='' onPress={onPress}>
                         <Text style={{color:'#00bc7d'}}className='text-xl ml-6'>Done</Text>
                     </TouchableOpacity> : null
@@ -481,8 +525,7 @@ useLayoutEffect(() => {
                     </View>
                 </View>
             ),
-            title: title.toUpperCase(),
-            headerTintColor: '#00bc7d'
+            title: title.toUpperCase()
         });
     },300)
 }, [isVisible, navigation, inputValue]); // Re-run when isVisible changes
