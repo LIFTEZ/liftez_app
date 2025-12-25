@@ -13,12 +13,13 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const lightTheme = {
   safeAreaBg: '#ffffff', // White for safe area
   headerBg: '#f0f0f0', // Light gray for header
-  screenBg: '#fafafa', // Slightly darker gray for screen background
+  screenBg: '#fafafa', // slightly darker white
   componentBg: '#d0d0d0', // Even darker for components like buttons/cards
   textPrimary: '#000000', // Black text
   textPrimary2: '#ffffff', // white text for flatlist items
   accent: '#007bff', // Blue accent
-  modal: 'rgba(98, 116, 142, 0.75)'
+  modal: 'rgba(98, 116, 142, 0.75)',
+  icon: '#00bc7d'
 
   // Add more granular keys as needed, e.g., buttonText: '#ffffff'
 };
@@ -31,7 +32,8 @@ const darkTheme = {
   textPrimary: '#ffffff', // White text
   textPrimary2: '#ffffff', // white text for flatlist items
   accent: '#0d6efd', // Darker blue accent
-  modal: 'rgba(29, 41, 61, 0.75)'
+  modal: 'rgba(29, 41, 61, 0.75)',
+  icon: '#fafafa'
   // Mirror lightTheme keys
 };
 

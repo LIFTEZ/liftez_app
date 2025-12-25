@@ -10,7 +10,7 @@ import { useTheme } from '../ThemeContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export default function MealsNavigator() {
+export default function LoggingNavigator() {
 //theme context
 const {theme, themeType, ToggleTheme } = useTheme();
 
