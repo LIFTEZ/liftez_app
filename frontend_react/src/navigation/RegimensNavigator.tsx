@@ -6,6 +6,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../ThemeContext';
 import RegimensScreen from '@/screens/RegimenScreen';
+import RegimenBuildStack from './RegimenBuildStack';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -32,6 +33,15 @@ const {theme, themeType, ToggleTheme } = useTheme();
             headerTintColor:'#00bc7d'
         }}/>
         {/* ADD RegimensBuild, this is where the Building functionality will occur */}
+        <Stack.Screen name="RegimenBuildMain" component={RegimenBuildStack}
+        options={{
+            title:'',
+            headerStyle:{backgroundColor:themeType.headerBg},
+            headerTintColor:'#00bc7d',
+            headerBackVisible:true,
+            headerBackTitle:'Back'
+        }}
+        />
       </Stack.Navigator>
     
   );

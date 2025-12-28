@@ -36,7 +36,8 @@ const {theme, themeType, ToggleTheme } = useTheme();
             headerBackTitle:'Back',
             title:'',
             headerStyle:{backgroundColor:themeType.headerBg},
-            headerTintColor:'#00bc7d'
+            headerTintColor:'#00bc7d',
+            headerBackVisible:true, //need this so it isn't removed by the useLayoutEffect in TextArea.tsx
         }}/>
       </Stack.Navigator>
     

@@ -1,4 +1,44 @@
 /**
+ * SCREENS IN REGIMENBUILDERSTACK FOLDER -----------------------------------------------------------------------------------------------------------------------
+ * 
+ * CURRENTLY WORKING ON:
+ * 
+ * 
+ * COMPLETED - Establishing the screen navigation order and functionality
+ * COMPLETED PARTIALLY - Building out the RegimenContext/Provider
+ *    COMPLETED - I need to make it so the provider knows which route it is on and then adjust the visual step indicator per route 
+ *     NEED TO COMPLETE- also need to build the visual step indicator as a component and import it into the RegimenProvider context
+ * 
+ * COMPLETED - Routing to and from for all the screens in the Regimen Builder 
+ *             -learned how to pass parameters via route using form interface from types.tsx
+ * 
+ * 
+ * 
+ * TO DO AFTER EATING/Short nap:
+ * COMPLETED (prototype) - Build visual step indicator as a component and import it into RegimenProvider (RegimenContext.tsx)
+ * - Need to change the Alert titles and values on each screen, just has example one for now
+ *      - commit after this before starting the build process
+ * - Start building the Regimen Builder
+ * COMPLETED - Add content to RegimenStartScreen.tsx either directly or via component
+ *    - this content will consist of a welcome intro and guide/breakdown of how the regimen builder works and each step
+ * -commit once RegimenStartScreen is set up because after that thats when the real work and modifications begin
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
  * ENTRYFLATLIST.TSX -----------------------------------------------------------------------------------------------------------------------------
  * 
  * Issues: 

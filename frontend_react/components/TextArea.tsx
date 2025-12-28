@@ -509,14 +509,40 @@ useLayoutEffect(() => {
     
     const title = `${entryName} ${entryIndex}`
         navigation.setOptions({
+          // header back is visible due to addition of headerBackVisible:true in LoggingNavigator.tsx for the Edit screen
+            headerLeft:() =>(
+              <View className='flex'>
+                    <View className='flex flex-row'>
+                    
+                        {inputValue.length > 0 && !isVisible?
+                        (<>
+                        {/* FUTURE IMPLEMENTATION EMAIL THE INPUT */}
+                        <View className='ml-8'>
+                          <TouchableOpacity><MaterialIcons name="schedule" size={24} color={themeType.textPrimary} /></TouchableOpacity>
+                          </View>
+                       
+                        </>):null}
+                
+                    </View>
+                </View>
+            ),
             headerRight: () => (
                 <View className='flex'>
                     <View className='flex flex-row'>
-                        {inputValue.length > 0?
+                    
+                        {inputValue.length > 0 && !isVisible?
+                        (<>
+                        {/* FUTURE IMPLEMENTATION EMAIL THE INPUT */}
+                        
+                          <View className='mr-10 mt-1'>
+                          <TouchableOpacity><MaterialIcons name="attach-email" size={24} color={themeType.textPrimary} /></TouchableOpacity>
+                          </View>
                         <TouchableOpacity className='' onPress={onReset}>
                         <Text className='text-xl ' style={{color:themeType.textPrimary}}>Clear</Text>
                         </TouchableOpacity>
-                        :null}
+                        </>):null}
+                       
+                        
                     { isVisible ? 
                     <TouchableOpacity className='' onPress={onPress}>
                         <Text style={{color:'#00bc7d'}}className='text-xl ml-6'>Done</Text>
@@ -525,7 +551,7 @@ useLayoutEffect(() => {
                     </View>
                 </View>
             ),
-            title: title.toUpperCase()
+            title: title.toUpperCase(),
         });
     },300)
 }, [isVisible, navigation, inputValue]); // Re-run when isVisible changes
