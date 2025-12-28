@@ -7,6 +7,7 @@ import { RootStackParamList } from '../src/types';
 import Entypo from '@expo/vector-icons/Entypo'; 
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5.js'
 import log from '@/src/utils/Logger';
+import RegimenMain from '@/components/RegimenMain';
 
 type RegimensScreenProps = NativeStackScreenProps<RootStackParamList, 'RegimenMain'>;
 
@@ -23,7 +24,7 @@ export default function RegimensScreen({navigation, route}: RegimensScreenProps)
             {/* <Text style={[styles.titleText,{color:'#00bc7d'}]}><Entypo name="tools" size={24} color={themeType.textPrimary} /> REGIMEN BUILDER <Entypo name="tools" size={24} color={themeType.textPrimary} /></Text> */}
             </View>
             
-
+           <RegimenMain navigation={navigation} route={route}/>
             
         </View>
     )
