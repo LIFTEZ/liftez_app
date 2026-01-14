@@ -12,7 +12,7 @@ import * as Sharing from 'expo-sharing';
 import {File,Directory,Paths} from 'expo-file-system';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationProp, useNavigation, RouteProp } from "@react-navigation/native";
-import { RegimenBuildParamList } from "@/src/types";
+import { RegimenBuildParamList,RootStackParamList } from "@/src/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import BuilderButton from "../Buttons/BuilderButton";
 
@@ -24,13 +24,6 @@ formData:CreateParams
 navigation:NavigationProp<any>
 route:RouteProp<RegimenBuildParamList, 'RegimenCreate'>
 }
-
-type RootStackParamList = {
-    Main: {entryStorageKey?:string}; // Main screen takes no parameters
-    Edit: {storagekey: string} // Edit screen takes a string which will be the unique storage key ID
-    RegimenMain: undefined //Regimens main screen that stores your regimens you create in Regimen builder and provides other options
-    RegimenBuildMain: undefined //Secondary screen to RegimenMain that allows you to build your own regimen with a super clean custom form
-};
 
 type FullParams = RegimenBuildParamList & RootStackParamList
 

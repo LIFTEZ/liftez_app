@@ -2,7 +2,7 @@ import { useEffect,useMemo,useState,useRef, use } from 'react';
 import { View,Text, StyleSheet,Alert, Pressable, Animated, ScrollView, FlatList, LogBox} from 'react-native';
 import { useTheme } from '@/src/ThemeContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RegimenBuildParamList } from '@/src/types';
+import { RegimenBuildParamList, RootStackParamList } from '@/src/types';
 import log from '@/src/utils/Logger';
 import RadioGroup from 'react-native-radio-buttons-group';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -16,12 +16,6 @@ LogBox.ignoreLogs([
     'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.',
   ]);
 
-type RootStackParamList = {
-    Main: {entryStorageKey?:string}; // Main screen takes no parameters
-    Edit: {storagekey: string} // Edit screen takes a string which will be the unique storage key ID
-    RegimenMain: undefined //Regimens main screen that stores your regimens you create in Regimen builder and provides other options
-    RegimenBuildMain: undefined //Secondary screen to RegimenMain that allows you to build your own regimen with a super clean custom form
-};
 
 type FullParams = RegimenBuildParamList & RootStackParamList
 

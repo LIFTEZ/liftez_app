@@ -1,6 +1,6 @@
 import { NavigationProp, RouteProp } from "@react-navigation/native"
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RegimenBuildParamList } from "@/src/types";
+import { RegimenBuildParamList, RootStackParamList } from "@/src/types";
 import { CreateParams } from "@/src/types";
 import {ScrollView,View, Pressable, Text, StyleSheet, TextInput,Animated,Modal,Alert} from 'react-native'
 import { useEffect, useState, useRef } from "react";
@@ -34,12 +34,6 @@ interface RouteProps{
 }
 
 
-type RootStackParamList = {
-    Main: {entryStorageKey?:string}; // Main screen takes no parameters
-    Edit: {storagekey: string} // Edit screen takes a string which will be the unique storage key ID
-    RegimenMain: undefined //Regimens main screen that stores your regimens you create in Regimen builder and provides other options
-    RegimenBuildMain: undefined //Secondary screen to RegimenMain that allows you to build your own regimen with a super clean custom form
-};
 
 type FullParams = RegimenBuildParamList & RootStackParamList
 

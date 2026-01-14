@@ -1,6 +1,6 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { usePreventRemove } from '@react-navigation/native';
-import { CreateParams, RegimenBuildParamList } from '../../src/types';
+import { CreateParams, RegimenBuildParamList, RootStackParamList } from '../../src/types';
 import { View,Text,StyleSheet,Alert, ScrollView } from 'react-native';
 import { useTheme } from '@/src/ThemeContext';
 import RegimenProvider,{useRegimen} from '@/src/RegimenContext'
@@ -10,17 +10,10 @@ import { fromPairs } from 'lodash';
 import RegimenCreate from '@/components/RegimenBuilder/RegimenCreate';
 
 
-type RootStackParamList = {
-    Main: {entryStorageKey?:string}; // Main screen takes no parameters
-    Edit: {storagekey: string} // Edit screen takes a string which will be the unique storage key ID
-    RegimenMain: undefined //Regimens main screen that stores your regimens you create in Regimen builder and provides other options
-    RegimenBuildMain: undefined //Secondary screen to RegimenMain that allows you to build your own regimen with a super clean custom form
-  };
-  
-  type FullParams = RegimenBuildParamList & RootStackParamList
-  
-  
-  type RegimenBuildMainScreenProps = NativeStackScreenProps<FullParams, 'RegimenCreate'>;
+type FullParams = RegimenBuildParamList & RootStackParamList
+
+
+type RegimenBuildMainScreenProps = NativeStackScreenProps<FullParams, 'RegimenCreate'>;
 
 
 export default function RegimenCreateScreen({navigation, route}:RegimenBuildMainScreenProps){
