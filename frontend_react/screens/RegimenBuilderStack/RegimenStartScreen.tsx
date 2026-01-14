@@ -165,27 +165,27 @@ export default function RegimenStartScreen({navigation, route}:RegimenBuildMainS
                 <Animated.View
                 style={{opacity:fadeAnim3}}
                 >
-                <Text style={{color:themeType.textPrimary}} className='text-left mt-8 p-4 text-lg'><Text className='text-xl text-emerald-500'>1.</Text> Select how many days and which muscle groups for each day that you want your regimen to consist of.</Text>
+                <Text style={{color:themeType.textPrimary}} className='text-left  p-4 text-lg'><Text className='text-xl text-emerald-500'>1.</Text> Select how many days and which muscle groups for each day that you want your regimen to consist of.</Text>
                 </Animated.View>
                 <Animated.View
                 style={{opacity:fadeAnim4}}
                 >
-                <Text style={{color:themeType.textPrimary}} className='text-left mt-6 p-4 text-lg'><Text className='text-xl text-emerald-500'>2.</Text> Build your regimen split per day and muscle group selecting exercises from a large catalog of exercises locked to that specific muscle group.</Text>
+                <Text style={{color:themeType.textPrimary}} className='text-left  p-4 text-lg'><Text className='text-xl text-emerald-500'>2.</Text> Build your regimen split per day and muscle group selecting exercises from a large catalog of exercises locked to that specific muscle group.</Text>
                 </Animated.View>
                 <Animated.View
                 style={{opacity:fadeAnim5}}
                 >
-                <Text style={{color:themeType.textPrimary}} className='text-left mt-6 p-4 text-lg'><Text className='text-xl text-emerald-500'>3.</Text> Finalize and create your regimen with an option to email to yourself, someone else, and or multiple people and generate a PDF of it.</Text>
+                <Text style={{color:themeType.textPrimary}} className='text-left  p-4 text-lg'><Text className='text-xl text-emerald-500'>3.</Text> Finalize and create your regimen with an option to email to yourself, someone else, and or multiple people and generate a PDF of it.</Text>
                 </Animated.View>
                 <Animated.View
                 style={{opacity:fadeAnim6}}
                 >
-                <Text style={{ fontSize:10}} className='text-center mt-6 p-4 text-emerald-500'>*Regimens get saved to your app automatically upon creation and will be displayed in the main Regimens menu*</Text>
+                <Text style={{ fontSize:10}} className='text-center mt-2 p-4 text-emerald-500'>*Regimens get saved to your app automatically upon creation and will be displayed in the main Regimens menu*</Text>
                 </Animated.View>
                 <Animated.View
                 style={{opacity:fadeAnim7}}
                 >
-                <BuilderButton title='Get Started' regimenCount={0} childRoute='RegimenDays' navigation={navigation} nestedRoute={route}/>
+                <BuilderButton title='Get Started' regimenCount={0} childRoute='RegimenSelect' navigation={navigation}/>
     
                 </Animated.View>
             </RegimenProvider>

@@ -6,27 +6,41 @@ export type RootStackParamList = {
     RegimenBuildMain: undefined //Secondary screen to RegimenMain that allows you to build your own regimen with a super clean custom form
 };
   
+interface ExerciseObj{
+    id:number
+    status:boolean[] 
+    exercise: string[]
+   
+}
 
+interface SelectParams{
+    days:string[] | undefined
+    muscles:string[] | undefined
+}
+
+export interface CreateParams{
+    fullBuild:ExerciseObj[]
+    fullSelection:SelectParams
+    totalExercises:number[]
+}
 
 // EXPECTED Form data parameters, create a new interface for each route because each route requires different data passed
 interface FormData{
-    days?:string
+    days:string[]
+    muscles:string[]
+    prevRoute?:string
+    prevRouteParams?:CreateParams
 }
 
 interface FormData2{
-    Step1:FormData
-    Username:string
-}
-
-interface FormData3{
-    Step1:FormData
-    Step2:FormData2
+    Step2:FormData
     email: string
 }
 
+
 export type RegimenBuildParamList = {
 RegimenStart:undefined //inital menu that explains how the builder works
-RegimenDays: { formData?: Partial<FormData> };  //select the day split and muscle groups and pass them to the next screen
-RegimenSplit: { formData2?: Partial<FormData2> }; //actually build the split based on the day and muscle groups provided 
-RegimenCreate: { formData3?: Partial<FormData3> }; //create the regimen and store in async, email to someone or self, generate pdf, etc
+RegimenSelect: undefined  //select the day split and muscle groups and pass them to the next screen
+RegimenBuild: { formData: Partial<FormData> }; //actually build the split based on the day and muscle groups provided 
+RegimenCreate: { formData?: Partial<FormData> }; //create the regimen and store in async, email to someone or self, generate pdf, etc
 };

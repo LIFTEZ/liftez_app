@@ -1,4 +1,4 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs/';
 import LoggingNavigator from './LoggingNavigator';
 import RegimensNavigator from './RegimensNavigator';
 import { useTheme } from '../ThemeContext';

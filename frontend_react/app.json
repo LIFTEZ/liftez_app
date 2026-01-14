@@ -1,17 +1,17 @@
 {
   "expo": {
-    "name": "meals logging app",
+    "name": "LIFTEZ",
     "slug": "frontend_react",
     "entryPoint": "./app/index.tsx",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo_liftez.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logo_liftez.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#2a313b"
     },
     "ios": {
       "supportsTablet": true
@@ -19,7 +19,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#2a313b"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false

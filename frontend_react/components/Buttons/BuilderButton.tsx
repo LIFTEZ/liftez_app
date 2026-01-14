@@ -2,7 +2,8 @@ import {LinearGradient} from 'expo-linear-gradient'
 import { useState,useEffect } from 'react';
 import {View,Text, Pressable, StyleSheet} from 'react-native'
 import { useTheme } from '@/src/ThemeContext';
-import { NavigationProp, Route, RouteProp } from '@react-navigation/native';
+import { NavigationProp, Route, RouteProp,useRoute } from '@react-navigation/native';
+import { CreateParams } from '@/src/types';
 import log from '@/src/utils/Logger'
 
 
@@ -13,45 +14,78 @@ type RootStackParamList = {
     RegimenBuildMain: undefined //Secondary screen to RegimenMain that allows you to build your own regimen with a super clean custom form
 };
 
+// interface FormData{
+//     days?:string
+// }
+
+// interface FormData2{
+//     Step1:FormData
+//     Username:string
+// }
+
+// interface FormData3{
+//     Step1:FormData
+//     Step2:FormData2
+//     email: string
+// }
+
 interface FormData{
-    days?:string
+    days:string[]
+    muscles:string[]
 }
 
 interface FormData2{
-    Step1:FormData
-    Username:string
-}
-
-interface FormData3{
-    Step1:FormData
-    Step2:FormData2
+    Step2:FormData
     email: string
 }
 
-
-
 type RegimenBuildParamList = {
     RegimenStart:undefined //inital menu that explains how the builder works
-    RegimenDays: { formData?: Partial<FormData> };  //select the day split and muscle groups and pass them to the next screen
-    RegimenSplit: { formData2?: Partial<FormData2> }; //actually build the split based on the day and muscle groups provided 
-    RegimenCreate: { formData3?: Partial<FormData3> }; //create the regimen and store in async, email to someone or self, generate pdf, etc
+    RegimenSelect: undefined  //select the day split and muscle groups and pass them to the next screen
+    RegimenBuild: { formData: Partial<FormData> }; //actually build the split based on the day and muscle groups provided 
+    RegimenCreate: { formData: Partial<FormData> }; //create the regimen and store in async, email to someone or self, generate pdf, etc
 };
+
+
+
+//SELECT PARAMS TO BUILD
+interface ParamsData{
+    days:string[]
+    muscles:string[]
+}
+
+
+
+//BUILD PARAMS TO CREATE
+
 
 interface BtnProps{
     title:string
+    params?:ParamsData | null
+    buildParams?:CreateParams
     regimenCount?: number
     childRoute?: string
     navigation:NavigationProp<any>
     route?:RouteProp<RootStackParamList, 'RegimenMain'>
-    nestedRoute?:RouteProp<RegimenBuildParamList, 'RegimenStart'>
 }
 
-const BuilderButton = ({title,regimenCount, childRoute, navigation, route, nestedRoute}: BtnProps) =>{
+const BuilderButton = ({title,params, buildParams, regimenCount, childRoute, navigation, route}: BtnProps) =>{
     const[isFocused, setIsFocused] = useState<boolean>(false)
     const{themeType} = useTheme()
-    log.debug(nestedRoute)
-    const navigate = () => {
+    const curroute = useRoute<RouteProp<RegimenBuildParamList>>();
 
+  // Access dynamically (e.g., log or use params)
+    log.warn('Current route name:', curroute.name); // e.g., 'RegimenStart
+    if(params)
+    log.debug('params received:',params)
+
+    if(buildParams){
+
+    }
+    //log.debug('{BuilderButton}: build params received from RegimenBuild to pass to CreateRegimen: ', buildParams)
+
+    const navigate = () => {
+        
         // if this button is in RegimenMain, check for regimen count
         if(regimenCount == 0 && route?.name == 'RegimenMain'){
             if(route?.name == 'RegimenMain'){
@@ -61,7 +95,7 @@ const BuilderButton = ({title,regimenCount, childRoute, navigation, route, neste
                 //PARAMS DO NOT MATTER HERE AND THE SCREEN CAN BE FIXED SINCE REGIMENCOUNT == 0 indicates RegimenStart will always be the first screen
                 navigation.navigate('RegimenBuildMain',
                     {
-                        screen:'RegimenDays',
+                        screen:'RegimenSelect',
                         params:{formData:{days:'5'}}
                     }   
                 )
@@ -70,13 +104,22 @@ const BuilderButton = ({title,regimenCount, childRoute, navigation, route, neste
         }
         // else regimen count and route doesn't matter go to the passed child route
         else{
-            //THE PARAMS WILL MATTER THO IM GOING TO HAVE TO UPDATE THAT IN THE FUTURE
-            navigation.navigate('RegimenBuildMain',
-                {
-                    screen:childRoute,
-                    params:{formData:{days:'5'}}
-                }
-            )
+            
+            //CONDITIONAL FOR CREATECOMPLETION ON REGIMENCREATE TO RETURN TO EXIT REGIMEN BUILDER
+            if(childRoute == "RegimenMain"){
+                log.warn('this is true, navigate to regimen main')
+                navigation?.getParent()?.navigate('RegimenMain')
+            }
+            else{
+
+                //THE PARAMS WILL MATTER THO IM GOING TO HAVE TO UPDATE THAT IN THE FUTURE
+                navigation.navigate('RegimenBuildMain',
+                    {
+                        screen:childRoute,
+                        params:{formData:buildParams? buildParams :params}
+                    }
+                )
+            }
         }
 
     }
@@ -96,7 +139,7 @@ const BuilderButton = ({title,regimenCount, childRoute, navigation, route, neste
                     >       
                 {/* Navigate to RegimenBuildMain which contains the routes RegimenStart, RegimenDays, RegimenSplit, RegimenCreate */}
                 <Pressable onPressIn={()=> setIsFocused(true)} onPressOut={()=> {setIsFocused(false), navigate()}}>
-                    <Text style={{color:isFocused? 'lime':themeType.textPrimary,fontFamily:'ScienceGothic-Regular'}} className='text-center text-xl p-2 uppercase'>{title}</Text>
+                    <Text style={{color:isFocused? 'lime':themeType.textPrimary2,fontFamily:'ScienceGothic-Regular'}} className='text-center text-xl p-2 uppercase'>{title}</Text>
                 </Pressable>
                 {/* <Text style={{color:themeType.textPrimary}} className='mt-10' onPress={()=> navigation.navigate('RegimenBuildMain')}> Go to Regimen Builder</Text> */}
                 </LinearGradient>
