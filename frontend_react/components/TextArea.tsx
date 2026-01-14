@@ -5,6 +5,7 @@ Alert} from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { MaterialIcons } from '@expo/vector-icons';
+import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import {Route, useNavigation} from '@react-navigation/native'
 import { useTheme } from '@/src/ThemeContext';
@@ -509,23 +510,33 @@ useLayoutEffect(() => {
     
     const title = `${entryName} ${entryIndex}`
         navigation.setOptions({
-          // header back is visible due to addition of headerBackVisible:true in LoggingNavigator.tsx for the Edit screen
-            headerLeft:() =>(
-              <View className='flex'>
-                    <View className='flex flex-row'>
-                    
-                        {inputValue.length > 0 && !isVisible?
-                        (<>
-                        {/* FUTURE IMPLEMENTATION EMAIL THE INPUT */}
-                        <View className='ml-8'>
-                          <TouchableOpacity><MaterialIcons name="schedule" size={24} color={themeType.textPrimary} /></TouchableOpacity>
-                          </View>
-                       
-                        </>):null}
-                
+          headerLeft: () => {
+            if (inputValue.length > 0 && !isVisible) {
+              return (
+                <View className='flex'>
+                  <View className='flex flex-row justify-center items-center'>
+                    {/* FUTURE IMPLEMENTATION EMAIL THE INPUT */}
+                    <View className='pl-4 pr-2'>
+                      <TouchableOpacity onPress={() => console.log('this is pressed')}>
+                        <MaterialIcons name="schedule" size={24} color={themeType.textPrimary} />
+                      </TouchableOpacity>
                     </View>
+                    <View className='pl-2 pr-2 mt-1'>
+                      <TouchableOpacity>
+                        <MaterialIcons name="attach-email" size={24} color={themeType.textPrimary} />
+                      </TouchableOpacity>
+                    </View>
+                    <View className='pl-2 pr-4'>
+                      <TouchableOpacity onPress={() => console.log('settings pressed, manage macros')}>
+                        <MaterialIcons name="settings" size={24} color={themeType.textPrimary} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
-            ),
+              );
+            }
+            return null; 
+          },
             headerRight: () => (
                 <View className='flex'>
                     <View className='flex flex-row'>
@@ -534,10 +545,8 @@ useLayoutEffect(() => {
                         (<>
                         {/* FUTURE IMPLEMENTATION EMAIL THE INPUT */}
                         
-                          <View className='mr-10 mt-1'>
-                          <TouchableOpacity><MaterialIcons name="attach-email" size={24} color={themeType.textPrimary} /></TouchableOpacity>
-                          </View>
-                        <TouchableOpacity className='' onPress={onReset}>
+                         
+                        <TouchableOpacity className='pl-2 pr-2' onPress={onReset}>
                         <Text className='text-xl ' style={{color:themeType.textPrimary}}>Clear</Text>
                         </TouchableOpacity>
                         </>):null}
@@ -545,13 +554,13 @@ useLayoutEffect(() => {
                         
                     { isVisible ? 
                     <TouchableOpacity className='' onPress={onPress}>
-                        <Text style={{color:'#00bc7d'}}className='text-xl ml-6'>Done</Text>
+                        <Text style={{color:'#00bc7d'}}className='text-xl pl-2 pr-2'>Done</Text>
                     </TouchableOpacity> : null
                     }
                     </View>
                 </View>
             ),
-            title: title.toUpperCase(),
+            
         });
     },300)
 }, [isVisible, navigation, inputValue]); // Re-run when isVisible changes
@@ -559,34 +568,7 @@ useLayoutEffect(() => {
  
 
     return (
-        <View className='w-full h-full bg-neutral-50'>
-                {/*THIS RENDERS FROM THE HEADER NOW  VIA USELAYOUTEFFECT*/}
-                {/* <View className='flex flex-row justify-between  p-4'>
-                    <View className='flex justify-center'>
-                        <TouchableOpacity onPress={() => navigation.goBack()}>
-                            <View className='flex flex-row '>
-                            <Text className='text-lg'>←</Text>
-                            <Text className='text-xl'> Back</Text>
-                            </View>
-                        </TouchableOpacity>
-                    </View>
-                    <View className='flex'>
-                        <View className='flex flex-row'>
-                            <TouchableOpacity className='' onPress={onReset}>
-                            <Text className='text-xl'>Clear</Text>
-                            </TouchableOpacity>
-                        { isVisible ? 
-                        <TouchableOpacity className='' onPress={onPress}>
-                            <Text className='text-blue-500 text-xl ml-6'>Done</Text>
-                        </TouchableOpacity> : null
-                        }
-                        </View>
-                    </View>
-                   
-                </View> */}
-
-         
-                
+        <View className='w-full h-full bg-neutral-50'>       
             <View 
             style={[styles.container, {backgroundColor:themeType.screenBg}]}>
                 <KeyboardAwareScrollView

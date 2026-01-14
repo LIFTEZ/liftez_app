@@ -33,7 +33,7 @@ const {theme, themeType, ToggleTheme } = useTheme();
             headerTintColor:'#00bc7d'
         }}/>
         <Stack.Screen name="Edit" component={Edit}  options={{
-            headerBackTitle:'Back',
+            headerBackTitle:'',
             title:'',
             headerStyle:{backgroundColor:themeType.headerBg},
             headerTintColor:'#00bc7d',

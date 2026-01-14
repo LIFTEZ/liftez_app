@@ -2,8 +2,8 @@ import { useTheme } from '../ThemeContext';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RegimenBuildParamList, RootStackParamList } from '../types';
 import RegimenStartScreen from '../../screens/RegimenBuilderStack/RegimenStartScreen'
-import RegimenDaysScreen from '../../screens/RegimenBuilderStack/RegimenDaysScreen'
-import RegimenSplitScreen from '../../screens/RegimenBuilderStack/RegimenSplitScreen'
+import RegimenSelectScreen from '../../screens/RegimenBuilderStack/RegimenSelectScreen'
+import RegimenBuildScreen from '../../screens/RegimenBuilderStack/RegimenBuildScreen'
 import RegimenCreateScreen from '../../screens/RegimenBuilderStack/RegimenCreateScreen'
 
 
@@ -28,14 +28,14 @@ const {theme, themeType, ToggleTheme } = useTheme();
                 headerTintColor:'#00bc7d',
                 headerBackTitle:'Regimens'
             }}/>
-            <Stack.Screen name="RegimenDays" component={RegimenDaysScreen}
+            <Stack.Screen name="RegimenSelect" component={RegimenSelectScreen}
             options={{
                 title:'',
                 headerStyle:{backgroundColor:themeType.headerBg},
                 headerTintColor:'#00bc7d',
                 headerBackTitle:'Start'
             }}/>
-            <Stack.Screen name="RegimenSplit" component={RegimenSplitScreen}
+            <Stack.Screen name="RegimenBuild" component={RegimenBuildScreen}
             options={{
                 title:'',
                 headerStyle:{backgroundColor:themeType.headerBg},

@@ -3,7 +3,7 @@ import {View,Text, StyleSheet} from 'react-native'
 import { useTheme } from './ThemeContext';
 import Entypo from '@expo/vector-icons/Entypo';
 import log from '@/src/utils/Logger'
-import StepVisualizer from '@/components/BuildStepVisualizer';
+import StepVisualizer from '../components/RegimenBuilder/BuildStepVisualizer';
 
 interface RegimenContextType {
     something:string

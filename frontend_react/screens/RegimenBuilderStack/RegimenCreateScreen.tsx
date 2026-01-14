@@ -1,14 +1,26 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { usePreventRemove } from '@react-navigation/native';
-import { RegimenBuildParamList } from '../../src/types';
-import { View,Text,StyleSheet,Alert } from 'react-native';
+import { CreateParams, RegimenBuildParamList } from '../../src/types';
+import { View,Text,StyleSheet,Alert, ScrollView } from 'react-native';
 import { useTheme } from '@/src/ThemeContext';
 import RegimenProvider,{useRegimen} from '@/src/RegimenContext'
 import Entypo from '@expo/vector-icons/Entypo';
 import log from '@/src/utils/Logger';
+import { fromPairs } from 'lodash';
+import RegimenCreate from '@/components/RegimenBuilder/RegimenCreate';
 
 
-type RegimenBuildMainScreenProps = NativeStackScreenProps<RegimenBuildParamList, 'RegimenCreate'>;
+type RootStackParamList = {
+    Main: {entryStorageKey?:string}; // Main screen takes no parameters
+    Edit: {storagekey: string} // Edit screen takes a string which will be the unique storage key ID
+    RegimenMain: undefined //Regimens main screen that stores your regimens you create in Regimen builder and provides other options
+    RegimenBuildMain: undefined //Secondary screen to RegimenMain that allows you to build your own regimen with a super clean custom form
+  };
+  
+  type FullParams = RegimenBuildParamList & RootStackParamList
+  
+  
+  type RegimenBuildMainScreenProps = NativeStackScreenProps<FullParams, 'RegimenCreate'>;
 
 
 export default function RegimenCreateScreen({navigation, route}:RegimenBuildMainScreenProps){
@@ -16,10 +28,13 @@ export default function RegimenCreateScreen({navigation, route}:RegimenBuildMain
     const{themeType} = useTheme()
     //FormData3 interface is set in types.tsx it extends FormData2 and FormData
     //formData3 is the parameter name expected from the type RegimenBuildParamList
-    const{formData3} = route.params
-
+    const{formData} = route.params
+    log.debug(route.params)
     // just getting visibility of route params
-    log.debug('{RegimenCreate received the following form data from RegimenSplit:}',formData3?.Step2?.Step1.days, formData3?.Step2?.Username, formData3?.email)
+    log.debug('{RegimenCreate received the following form data from RegimenBuild:}',formData)
+    
+    const regimenData = formData as CreateParams
+
     
     
     usePreventRemove(
@@ -27,8 +42,8 @@ export default function RegimenCreateScreen({navigation, route}:RegimenBuildMain
         ({ data }) => {
           // Callback function when removal is prevented
           Alert.alert(
-            'Discard changes?',
-            'You have unsaved changes. Are you sure to discard them and leave the screen?',
+            'Return to Build?',
+            'You can return to the Build step and keep your current regimen build, but anything you did in Create will not be saved!',
             [
               {
                 text: "Stay",
@@ -36,9 +51,9 @@ export default function RegimenCreateScreen({navigation, route}:RegimenBuildMain
                 onPress: () => {},
               },
               {
-                text: 'Discard',
+                text: 'OK',
                 style: 'destructive',
-                onPress: () => {navigation.navigate('RegimenSplit',{formData2:{Step1:{days:''}, Username:''}})}, // Dispatch the original action to proceed
+                onPress: () => {navigation.navigate('RegimenBuild',{formData:{prevRouteParams:formData as CreateParams,prevRoute:'RegimenCreate'}})}, // Dispatch the original action to proceed
               },
             ]
           );
@@ -47,7 +62,9 @@ export default function RegimenCreateScreen({navigation, route}:RegimenBuildMain
     return(
         <View>
             <RegimenProvider Step={3}>
-            <Text style={{color:themeType.textPrimary}}>Regimen Create</Text>
+            
+                <RegimenCreate formData={regimenData} navigation={navigation} route={route}/>
+              
             </RegimenProvider>
         </View>
     )
