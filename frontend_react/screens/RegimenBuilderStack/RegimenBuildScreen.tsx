@@ -1,6 +1,6 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { usePreventRemove } from '@react-navigation/native';
-import { RegimenBuildParamList } from '../../src/types';
+import { RegimenBuildParamList,RootStackParamList } from '../../src/types';
 import { View,Text, StyleSheet, Alert } from 'react-native';
 import { useTheme } from '@/src/ThemeContext';
 import log from '@/src/utils/Logger';
@@ -8,12 +8,10 @@ import RegimenProvider,{useRegimen} from '@/src/RegimenContext';
 import RegimenBuild from '@/components/RegimenBuilder/RegimenBuild';
 
 
+type FullParams = RegimenBuildParamList & RootStackParamList
 
 
-
-
-
-type RegimenBuildMainScreenProps = NativeStackScreenProps<RegimenBuildParamList, 'RegimenBuild'>;
+type RegimenBuildMainScreenProps = NativeStackScreenProps<FullParams, 'RegimenBuild'>;
 
 
 export default function RegimenBuildScreen({navigation, route}:RegimenBuildMainScreenProps){
