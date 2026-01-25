@@ -256,7 +256,7 @@ const EmailRegimen = async (name:string, emailTo:string, emailFrom:string, addTe
         throw new Error('failed to send email')
     }
     
-    log.debug(payload)
+   
   
 }
 
