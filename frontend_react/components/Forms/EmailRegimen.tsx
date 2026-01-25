@@ -203,10 +203,13 @@ const EmailRegimen = async (name:string, emailTo:string, emailFrom:string, addTe
         email:emailObj
     }
     
-    const port = 3000
+    //const port = 3000
+
+    const apiUrl = process.env.EXPO_PUBLIC_API_GATEWAY
+    log.debug('api url:',apiUrl)
     try{
         //gotta use device IP when using the fetch call
-        const response = await fetch(`http://192.168.1.21:${port}/api/sharePDF`, {
+        const response = await fetch(apiUrl, {
         method:'POST',
         headers:{
             'Content-Type':'application/json',
@@ -215,18 +218,18 @@ const EmailRegimen = async (name:string, emailTo:string, emailFrom:string, addTe
 
 
         })
-        const result:ResponseObj = await response.json()
-       
 
-        if(result.error){
+
+                
+        //failed lambda response
+        if(response.status == 500){
             setIsSendBtnFocused(false)
             setIsProcessing(false)
             throw new Error('failed to send email')
-            
         }
         else{
             log.debug('successful call')        
-            log.debug('api response:',result)
+            log.debug('api response:',response)
             setProcessingText('email successfully delivered!')
             setTimeout(()=>{
                 setIsProcessing(false)
@@ -239,13 +242,18 @@ const EmailRegimen = async (name:string, emailTo:string, emailFrom:string, addTe
           
             return true
         }
-      
+       
         
 
     }
     catch (error){
-        log.warn('Error connecting to API proxy, make sure you did npx tsx index.ts in the proxy directory')
-        return false
+        log.warn('Error connecting to API Gateway, make sure endpoint is correct, resources are deployed and there are no issues with lambda or SES')
+        setProcessingText('failed to send email...exiting process')
+        setTimeout(()=>{
+        setIsProcessing(false)
+        setProcessingText('')
+        },2000)
+        throw new Error('failed to send email')
     }
     
     log.debug(payload)

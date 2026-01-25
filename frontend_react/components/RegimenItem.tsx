@@ -403,7 +403,7 @@ const RegimenItem = ({regimenkey, didDelete}:Data) =>{
                <GestureDetector gesture={panGesture}>
                <View className='rounded-xl' style={styles.innerContent}>
                 <LinearGradient
-                style={styles.gradientWrapper}
+                style={[styles.gradientWrapper,{borderWidth:1}]}
                 colors={['#919191', '#737373', '#bfbfbf']}
                 >
 
@@ -412,14 +412,16 @@ const RegimenItem = ({regimenkey, didDelete}:Data) =>{
                    <Text style={{fontSize:16, color:themeType.textPrimary2, fontWeight:'500'}} className='p-2'>{regimenLabel}</Text>
                    <Animated.View style={[animatedStyle]}>
                     <Pressable onPress={()=>deleteRegimen(regimenkey)}>
-                   <Text className='bg-red-500 p-2 pr-4 rounded-l-lg'>DELETE</Text>
+                        <View className='bg-red-500 p-2 pr-4 -mt-2 pb-4 rounded-l-lg'>
+                        <Text className='mt-2'>DELETE</Text>
+                        </View>
                    </Pressable>
                    </Animated.View>
                    </View>
                    {/* optional creation date later maybe */}
                    {/* <Text className='mb-2' style={{color:themeType.textPrimary2}}>Created On: (creation date)</Text> */}
                    <Animated.View>
-                       <View className='flex w-full flex-row justify-end items-center rounded-b-lg m-2  border-2' style={{borderColor:'lime', backgroundColor:themeType.componentBg, display:displayOption?'flex':'none'}}>
+                       <View className='flex w-full flex-row justify-end items-center rounded-b-lg   border-2' style={{borderColor:'lime', backgroundColor:themeType.componentBg, display:displayOption?'flex':'none'}}>
                            <TouchableOpacity onPress={()=> downloadPDF(Regimen)}>
                            <FontAwesome6 name="file-pdf" size={24} color={themeType.textPrimary} className='p-2'/>
                            </TouchableOpacity>

@@ -348,10 +348,12 @@ const RegimenCreate = ({formData,navigation, route}: RegimenCreateProps) =>{
                 email:emailObj
             }
             
-            const port = 3000
+            //const port = 3000
+
+            const apiUrl = process.env.EXPO_PUBLIC_API_GATEWAY
             try{
                 //gotta use device IP when using the fetch call
-                const response = await fetch(`http://192.168.1.21:${port}/api/sharePDF`, {
+                const response = await fetch(apiUrl, {
                 method:'POST',
                 headers:{
                     'Content-Type':'application/json',
@@ -360,23 +362,18 @@ const RegimenCreate = ({formData,navigation, route}: RegimenCreateProps) =>{
 
 
                 })
-                const result:ResponseObj = await response.json()
-               
 
-                if(result.error){
+                if(response.status == 500){
                     throw new Error('failed to send email')
                 }
                 else{
                     log.debug('successful call')        
-                    log.debug('api response:',result)
+                    log.debug('api response:',response)
                     return true
                 }
-              
-                
-
             }
             catch (error){
-                console.log('Error connecting to API proxy, make sure you did npx tsx index.ts in the proxy directory')
+                console.log('Error connecting to API Gateway, make sure endpoint is correct, resources are deployed and there are no issues with lambda or SES')
                 return false
             }
             
