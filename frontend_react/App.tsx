@@ -5,6 +5,7 @@ import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import TabNavigator from './src/navigation/TabNavigator';
 import { ThemeProvider, useTheme } from './src/ThemeContext';
+import {GestureHandlerRootView} from 'react-native-gesture-handler'
 import "./global.css"
 import * as Font from 'expo-font'
 // Sub-component to use the hook for dynamic styling
@@ -14,9 +15,12 @@ function ThemedSafeArea() {
   const { themeType } = useTheme(); // Access theme here (inside provider)
 
   return (
+    // required for swipping context
+    <GestureHandlerRootView>
     <SafeAreaView  className='w-full h-full' style={{ backgroundColor: themeType.headerBg }}>
       <TabNavigator/>
     </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 

@@ -93,6 +93,8 @@ const BuilderButton = ({title,params, buildParams, regimenCount, childRoute, nav
             //CONDITIONAL FOR CREATECOMPLETION ON REGIMENCREATE TO RETURN TO EXIT REGIMEN BUILDER
             if(childRoute == "RegimenMain"){
                 log.warn('this is true, navigate to regimen main')
+
+                //add optional parameter to RegimenMain such as prevRoute so if prevRoute is RegimenCreate then I can add back the bottom tabbar
                 navigation?.getParent()?.navigate('RegimenMain')
             }
             else{

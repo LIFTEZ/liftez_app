@@ -15,6 +15,7 @@ import { NavigationProp, useNavigation, RouteProp } from "@react-navigation/nati
 import { RegimenBuildParamList,RootStackParamList } from "@/src/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import BuilderButton from "../Buttons/BuilderButton";
+import EmailRegimen from "../Forms/EmailRegimen";
 
 
 
@@ -37,30 +38,17 @@ const RegimenCreate = ({formData,navigation, route}: RegimenCreateProps) =>{
     const regimenData = formData
 
     //modal variables
-    const[isVisible, setIsVisible] = useState<boolean>(false)
-    const[isBtnFocused, setIsBtnFocused] = useState<boolean>(false)
+    const[isModalOpen, setIsModalVisible] = useState<boolean>(false)
 
     //PDF and email variables
     const[RegimenJSON,setRegimenJSON] = useState<string>('')
     const[RegimenHTML,setRegimenHTML] = useState<string>('')
-    const scrollRef = useRef<KeyboardAwareScrollView>(null);
-    const multilineRef = useRef<TextInput>(null);
-    const[additionalText,setAdditionalText] = useState<string>('')
 
-    //USER NAME VARIABLES
-    const[inputName, setText] = useState<string>('')
-    const[cancelName, setCancelName] = useState<boolean>(false)
+    //email form data variables returned from EmailRegimen component    
     const[userName, setName] = useState<string>('')
-  
-    //RECIPIENT EMAIL VARIABLES
     const[recipEmail, setRecipEmail] = useState<string>('')
-    const[cancelRecipEmail,setCancelRecipEmail] = useState<boolean>(false)
-    const[inputRecip, setRecipText] = useState<string>('')
-
-    //SENDER EMAIL VARIABLES
     const[senderEmail, setSenderEmail] = useState<string>('')
-    const[cancelSenderEmail,setCancelSenderEmail] = useState<boolean>(false)
-    const[inputSender, setSenderText] = useState<string>('')
+    const[additionalText,setAdditionalText] = useState<string>('')
 
     //FINISH CREATION BUTTON AND VARIABLES
     const[isFocused,setIsFocused] = useState<boolean>(false)
@@ -121,7 +109,7 @@ const RegimenCreate = ({formData,navigation, route}: RegimenCreateProps) =>{
                 setIsProcessing(true)
                 setRequestStatus('processing email request...')
                 log.debug('email configured process request thru api gateway and lambda')
-                const didEmail = await EmailRegimen(userName, recipEmail,senderEmail, additionalText)
+                const didEmail = await EmailRegimenFunc(userName, recipEmail,senderEmail, additionalText)
                 if(didEmail){
                     setRequestStatus('email delivered!')
                     setTimeout(async ()=>{
@@ -199,6 +187,18 @@ const RegimenCreate = ({formData,navigation, route}: RegimenCreateProps) =>{
 
         const storagekey = `Regimen_${regimenCount}`
         const value = RegimenJSON
+
+        //if I want here in the future I can create an object
+        /* 
+        interface RegimenObj{
+            date:string //creation date, current date
+            regimen: string //the actual regimen
+            name: string //name of the regimen
+        }
+        and use this object to add creation date label to the regimenitem
+        also the option to rename the regimen or set a name prior, can be implemented once in Testflight or i'll never deploy this app
+        */
+
         const regimenAddedPromise = await new Promise(async res => {
             setTimeout(async ()=>{
                 await AsyncStorage.setItem(storagekey, value)
@@ -211,7 +211,7 @@ const RegimenCreate = ({formData,navigation, route}: RegimenCreateProps) =>{
         if(regimenAdded){
             log.debug('regimen successfully added to async storage')
 
-            const regimen = await AsyncStorage.getItem('Regimen_0')
+            const regimen = await AsyncStorage.getItem(storagekey)
             if(regimen)
             setStoredRegimen(regimen)
         }
@@ -236,7 +236,7 @@ const RegimenCreate = ({formData,navigation, route}: RegimenCreateProps) =>{
 
 
     //share regimen as email and pdf document attachment
-    const EmailRegimen = async (name:string, emailTo:string, emailFrom:string, addText:string | undefined ): Promise<boolean> =>{
+    const EmailRegimenFunc = async (name:string, emailTo:string, emailFrom:string, addText:string | undefined ): Promise<boolean> =>{
 
             //MODIFY THE REGIMEN (with or without additional notes), to replace the br with the word break
             let regimenFinal:string = RegimenHTML
@@ -416,89 +416,32 @@ const RegimenCreate = ({formData,navigation, route}: RegimenCreateProps) =>{
      * 
     */
 
-    const handleName = () =>{
 
-        if(inputName == ''){
-            setName('')
-            setText('')
-            return
-        }
+    //EMAILREGIMEN CHILD COMPONENT FUNCTION
 
-        setName(inputName)
-        setText('')
+    interface childData{
+        closeModal:boolean
+        senderName?:string
+        senderEmail?:string
+        recipEmail?:string
+        additionalNotes?:string
     }
 
-    const handleRecipEmail = () =>{
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    //take data from close button function in EmailRegimen component and set the values
+    const handleEmailData = async (data: childData) =>{
+        //close modal
+        setIsModalVisible(!data.closeModal) // value is true so ! is needed for invert/opposite
 
-        
-        if(inputRecip == ''){
-            setRecipEmail('')
-            setRecipText('')
-            return
-        }
-        
-        if(!emailRegex.test(inputRecip)){
-            alert('invalid email')
-            setRecipEmail('')
-            setRecipText('')
-            return
-        }
-       
+        //set form values
+        if(data.senderEmail)
+        setSenderEmail(data.senderEmail)
+        if(data.senderName)
+        setName(data.senderName)
+        if(data.recipEmail)
+        setRecipEmail(data.recipEmail)
+        if(data.additionalNotes)
+        setAdditionalText(data.additionalNotes)
 
-        setRecipEmail(inputRecip)
-        setRecipText('')
-    
-    }
-    const handleSenderEmail = () =>{
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        
-        if(inputSender == ''){
-            setSenderEmail('')
-            setSenderText('')
-            return
-        }
-        
-        if(!emailRegex.test(inputSender)){
-            alert('invalid email')
-            setSenderEmail('')
-            setSenderText('')
-            return
-        }
-       
-
-        setSenderEmail(inputSender)
-        setSenderText('')
-    
-    }
-
-    const handleContentSizeChange = (event:TextInputContentSizeChangeEvent) =>{
-
-        // log.debug(event.nativeEvent.contentSize.height)
-        multilineRef.current?.measure((
-            x: number,
-            y: number,
-            width: number,
-            height: number,
-            pageX: number,
-            pageY: number   
-        ) => {scrollRef.current?.scrollToPosition(x,y,true)}
-        )
-    }
-
-    const handleFocusScroll = (event: NativeSyntheticEvent<TargetedEvent>) => {
-
-        multilineRef.current?.measure((
-            x: number,
-            y: number,
-            width: number,
-            height: number,
-            pageX: number,
-            pageY: number   
-        ) => {scrollRef.current?.scrollToPosition(x,y,true)}
-        )
-      
     }
 
     //ON MOUNT FUNCTIONS //////////////////////////////////////////////
@@ -541,9 +484,9 @@ const RegimenCreate = ({formData,navigation, route}: RegimenCreateProps) =>{
             log.debug(`${day},${muscles}`)
 
             //PDF VERSION
-            htmlValue+= `<br> ${day.toUpperCase()}: ${muscles?.toUpperCase()} <br>`
+            htmlValue+= `<br> ${day.toUpperCase()}: ${muscles?.toUpperCase().replaceAll('_','/')} <br>`
             //ASYNC STORAGE VERSION (DOESNT USE HTML)
-            jsonValue+= `\n ${day.toUpperCase()}: ${muscles?.toUpperCase()} \n`
+            jsonValue+= `\n ${day.toUpperCase()}: ${muscles?.toUpperCase().replaceAll('_','/')} \n`
 
             regimenData.fullBuild[index].status.forEach((exerciseStatus, statusIndex)=>{
 
@@ -580,15 +523,33 @@ const RegimenCreate = ({formData,navigation, route}: RegimenCreateProps) =>{
             }
         })
 
+        setRegimenCount(totalRegimens)
+        
+    }
 
-        if(totalRegimens > 0){
-            setRegimenCount(totalRegimens - 1)
-        }
+    const deleteAllRegimens = async() =>{
+
+        const keys = await AsyncStorage.getAllKeys()
+
+        keys.forEach(async (key)=>{
+
+            if(key.includes('Regimen_')){
+
+                await AsyncStorage.removeItem(key)
+            }
+        })
     }
 
 
+    useEffect(()=>{
+
+        log.debug('regimen count:', regimenCount)
+
+    },[regimenCount])
+
     //on mount generate json string and set regimen count based on if any async stored regimens exist
     useEffect(()=>{
+        //deleteAllRegimens()
         createJsonRegimen()
         getRegimenCount()
     },[formData])
@@ -660,7 +621,7 @@ const RegimenCreate = ({formData,navigation, route}: RegimenCreateProps) =>{
                             <View className='mt-4 flex flex-row justify-between'>
                             <View className="flex flex-row">
                             <Text style={{color:themeType.textPrimary}}>{day.toUpperCase()}: </Text>
-                            <Text style={{color:themeType.textPrimary}}>{regimenData.fullSelection?.muscles?.[index].replace('_','/').toUpperCase()}</Text>
+                            <Text style={{color:themeType.textPrimary, maxWidth:120}}>{regimenData.fullSelection?.muscles?.[index].replaceAll('_','/').toUpperCase()}</Text>
                             </View>
                             <View>
                             <Text style={{color:themeType.textPrimary}}>Total Exercises:{regimenData.totalExercises[index]}</Text>
@@ -686,95 +647,13 @@ const RegimenCreate = ({formData,navigation, route}: RegimenCreateProps) =>{
                 </View>
 
                 {/* EMAIL COMPONENT */}
-                <Modal 
-                animationType="fade"
-                visible={isVisible}
-                transparent={true}
-                onRequestClose={() => {
-                    Alert.alert('Modal has been closed.');
-                    setIsVisible(false)
-                }}>
-                    
-                    <View style={styles.centeredView}>
-                        <View style={[styles.modalView,{backgroundColor:themeType.modal}]} className='w-[95%] h-[85%]  '>
-                            <View className='h-full w-full p-2 rounded-lg' style={{backgroundColor:themeType.screenBg, borderColor:'lime', borderWidth:1}}>
-                                <KeyboardAwareScrollView
-                                ref={scrollRef}
-                                enableAutomaticScroll={true}
-                                extraScrollHeight={30}
-                                >
-                                
-                                <Text className="mt-4 p-2" style={{color:'#00bc7d', fontWeight:'bold'}}>EMAIL: (optional) <Text style={{fontSize:12}}>*Email this regimen to you or someone else upon creation*</Text></Text>
-                                <Text className="mt-4 p-2" style={{color:'#00bc7d', fontSize:12}}>**Regimen will be sent in text format and will also be attached as a pdf file without the file having to be created**</Text>
-                                    {/* USER NAME FIELD */}
-                                    <Text className="mt-4 p-2" style={{color:'#00bc7d', fontWeight:'bold'}}>Name:</Text>
-                                    <TextInput placeholder="enter your name" className="p-2 border-2 rounded-lg" keyboardType="email-address" inputMode='email'
-                                    onChangeText={newText => setText(newText)} onBlur={()=>handleName()} value={inputName} style={{backgroundColor:themeType.textPrimary2}}/>
-                                    {userName?
-                                    <View className="flex flex-row items-center">
-                                    <Text className="p-2" style={{color:'#00bc7d'}}>Name: {userName}</Text>
-                                    <Pressable  className='items-center' onPressIn={()=>{setCancelName(true)}} onPressOut={()=>{setCancelName(false), setName(''), setText('')}}>
-                                    <MaterialIcons style={{marginRight:10}} name="cancel" size={20} color={cancelRecipEmail?'lime': themeType.textPrimary} />
-                                    </Pressable>
-                                    </View>
-                                    :null}
-                                    {/* RECIPIENT FIELD */}
-                                    <Text className="mt-4 p-2" style={{color:'#00bc7d', fontWeight:'bold'}}>Recipient:</Text>
-                                    <TextInput placeholder="enter recipient email" className="p-2 border-2 rounded-lg" keyboardType="email-address" inputMode='email'
-                                    onChangeText={newText => setRecipText(newText)} onBlur={()=>handleRecipEmail()} value={inputRecip} style={{backgroundColor:themeType.textPrimary2}}/>
-                                    {recipEmail?
-                                    <View className="flex flex-row items-center">
-                                    <Text className="p-2" style={{color:'#00bc7d'}}>Email: {recipEmail}</Text>
-                                    <Pressable  className='items-center' onPressIn={()=>{setCancelRecipEmail(true)}} onPressOut={()=>{setCancelRecipEmail(false), setRecipEmail(''), setRecipText('')}}>
-                                    <MaterialIcons style={{marginRight:10}} name="cancel" size={20} color={cancelRecipEmail?'lime': themeType.textPrimary} />
-                                    </Pressable>
-                                    </View>
-                                    :null}
-                                    {/* SENDER FIELD */}
-                                    <Text className="mt-4 p-2" style={{color:'#00bc7d', fontWeight:'bold'}}>Sender:</Text>
-                                    <TextInput placeholder="enter your/sender email" className="p-2 border-2 rounded-lg" keyboardType="email-address" inputMode='email'
-                                    onChangeText={newText => setSenderText(newText)} onBlur={()=>handleSenderEmail()} value={inputSender} style={{backgroundColor:themeType.textPrimary2}}/>
-                                    {senderEmail?
-                                    <View className="flex flex-row items-center">
-                                    <Text className="p-2" style={{color:'#00bc7d'}}>Email: {senderEmail}</Text>
-                                    <Pressable  className='items-center' onPressIn={()=>{setCancelSenderEmail(true)}} onPressOut={()=>{setCancelSenderEmail(false), setSenderEmail(''), setSenderText('')}}>
-                                    <MaterialIcons style={{marginRight:10}} name="cancel" size={20} color={cancelSenderEmail?'lime': themeType.textPrimary} />
-                                    </Pressable>
-                                    </View>
-                                    :null}
-                                    {/* ADD ADDITIONAL NOTES FIELD MULTILINE TEXTINPUT */}
-                                    <Text className="mt-4 p-2" style={{color:'#00bc7d', fontWeight:'bold'}}>Additional Notes (optional):</Text>
-                                    <Text className="p-2" style={{color:'#00bc7d', fontSize:12}}>This will be appended to the bottom of the regimen**</Text>
-                                    <TextInput 
-                                    className="p-2  border-2 rounded-lg" 
-                                    ref={multilineRef}
-                                    multiline={true} 
-                                    value={additionalText}
-                                    onFocus={handleFocusScroll}
-                                    onChangeText={newText=>setAdditionalText(newText)}
-                                    onContentSizeChange={handleContentSizeChange}
-                                    style={{backgroundColor:themeType.textPrimary2}} />
-                                
-                            </KeyboardAwareScrollView>
-                            </View>
-                                <Pressable className='mt-4 bg-emerald-500'
-                            style={[styles.button, {transform:isBtnFocused?[{ scale: 1.2 }]: [{scale:1}]}]}
-                            onPress={() => setIsVisible(false)} onPressIn={()=> setIsBtnFocused(true)} onPressOut={()=> setIsBtnFocused(false)}>
-                            <Text style={styles.textStyle}>Close</Text>
-                        </Pressable>
-                        <View className='-mt-4'>
-                        
-                        </View>
-                        </View>
-                    </View>
-                
-                </Modal>
+                <EmailRegimen isModalOpen={isModalOpen} onDataReceived={handleEmailData}/>
 
             {/* ADDITIONAL OPTIONS */}
             <View>
                 {/* EMAIL OPTION */}
                 <View className="p-2 mt-6">
-                <TouchableOpacity onPress={()=>setIsVisible(true)}>
+                <TouchableOpacity onPress={()=>setIsModalVisible(true)}>
                 <Text style={{color:'#00bc7d'}}>PRESS TO CONFIG EMAIL OPTION</Text>
                 <MaterialIcons name="attach-email" size={24} color={themeType.textPrimary} />
                 </TouchableOpacity>
@@ -787,7 +666,7 @@ const RegimenCreate = ({formData,navigation, route}: RegimenCreateProps) =>{
                 </TouchableOpacity>
                 </View>
             </View>
-                <View className='h-[10%] flex justify-end mt-2'>
+                <View className='h-[20%] flex justify-end mt-2'>
                 <LinearGradient
                     colors={isFocused?['#23f707','#5fc752','#00bc7d']:['#919191', '#737373', '#bfbfbf']}
                     // style={{borderWidth:2, padding:15, borderRadius:10, borderColor:}}

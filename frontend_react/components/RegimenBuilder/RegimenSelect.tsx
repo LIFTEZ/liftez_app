@@ -1,4 +1,4 @@
-import { useEffect,useMemo,useState,useRef, use } from 'react';
+import { useEffect,useMemo,useState,useRef, use, useLayoutEffect } from 'react';
 import { View,Text, StyleSheet,Alert, Pressable, Animated, ScrollView, FlatList, LogBox} from 'react-native';
 import { useTheme } from '@/src/ThemeContext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -535,7 +535,13 @@ const RegimenSelect = ({navigation, route}: RegimenSelectProps) =>{
 
    
 
+    useLayoutEffect(()=>{
+        //remove bottom tabbar navigation
+        navigation.getParent()?.getParent()?.setOptions({
+            tabBarStyle: { display: 'none' }
+        })
 
+    },[])
 
 
     return (
@@ -784,7 +790,7 @@ const RegimenSelect = ({navigation, route}: RegimenSelectProps) =>{
                                             <Text className='text-emerald-500 mt-2'>*Please select 1 muscle group for each day to proceed!</Text>
                                             </View>  
                                         : 
-                                        <View className='w-full'>
+                                        <View className='w-full mt-4'>
                                         <Animated.View
                                         className='w-full mt-2'
                                         style={{opacity:fadeAnim}}

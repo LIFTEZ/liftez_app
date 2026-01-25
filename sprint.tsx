@@ -3,37 +3,92 @@
  * 
  * CURRENTLY WORKING ON:
  * 
- *  
- *                          
- *                     
+ *  TO DO- 
+ *      COMPELTED - fix the regimen text to change CHEST_BACK to CHEST/BACK, by replacing _ with / on both non email and email regimen
+ *      COMPLETED - fixed render issues with useLayoutEffect on TextArea for headerRight option
+ *      COMPLETED - get rid of console logs from RegimenItem
+ *      COMPLETED - Added coming soon alert feature for missing features in TextArea
+ *      COMPLETED - Added hidden feature modal in TextArea witha animated dynamic headerLeft icon that disappears after OKing
+ *                 COMPLETED - need to add checkbox so the message is never shown again if checked in any of the other entries by adding a key to asyncstorage
+ *                      and then checking if that key exists each time in useEffect whenever the entry item is opened 
+ *                       COMPLETED - perfect the animation
+ *                       COMPLETED - ask grok to explain the input output interpolation
  * 
- *   HIGHEST PRORITY 
- *          
- *          
- *          - commit everything once regimen creation complete is successful
- * 
- *          - Build out RegimenMain
- *                  - display regimens as flatlist
- *                  - render regimens as their own component much like entryflatlist
- *                  - allow regimens to be viewed, edited, downloaded, and emailed
- *          - Turn the email modal and logic in RegimenCreate into its own component to be reused in RegimenMain
+ *      - commit everything
+ *      - add an additional branch with proxy removed and email api call going directly to api gateway
+ *      - Add macro command feature to TextArea
  * 
  * 
- *          - Add macro command feature to TextArea
  * 
- *          AFTER DONE BUILDING APP 
+ *  FUTURE:
+ * - Go back to TextArea and work on it stylistic wise with new ios styling changes
+ *  - MAYBE, figure out how to pass optional prevRoute param to RegimenMain so the bottom tab useLayoutEffect function only runs if prevRoute exists
+ *  - MAYBE, add creation date and name to the regimen, this would be implemented from RegimenCreate function
+ * 
+ *  AFTER DONE BUILDING APP 
  *          FIX: 
  *          - filtering exercises and how the checkboxes respond is still a little messed up
  *              - if I select barbell squats and barbell front squats and then 5 of the leg press exercises
  *                     - When i go and filter the word "leg" depending how fast I type it two exercises get added automatically...
  *                              im not sure why this is happening but I need to fix it
+ *          - light/dark mode button not rerendering correctly after changing tabs
+ *                  - renders once screen is pressed anywhere after changing tabs, initial load it works on app refresh
+ *                  - tried multiple solutions, probably an ios26 bug maybe fixed with new EXPO sdk not sure havent updated yet
+ *          - figure out how to make it so the edit option on regimenitem on tracks actual character changes and doesn't
+ *            ask for confirm or cancel changes on spaces or new lines 
+ * 
+ * 
+ *          COMPLETED - Building RegimenItem component (currently still in RegimenMain)
+ *             COMPLETED - styling, for the most part, need to change the colors and stuff
+ *             COMPLETED - gesture panning detection for item options (delete, email, download, edit)
+ *             COMPLETED - added animations for the gesture panning detection to make the delete button spring in
+ * 
+ *             COMPLETED - TO DO:
+ *                 
+ *       
+ *                  TO DO - Complete edit/save/delete functionality 
+ *                            COMPLETED  -figure out how to modify the text correctly and save it  and undo
+ *                   COMPLETED - change the styling of the RegimenItem component so it isnt blue and red backgrounds anymore
+ * 
+ *                  COMPLETED - convert code to RegimenItem component and then add flatlist to RegimenMain
+ *                  COMPLETED - Send button for email functionality 
+ * 
+ * 
+ *                  COMPLETED - add email functionality
+ *                              COMPLETED - building the component
+ *                                      COMPLETED - test the component in RegimenCreate, pretty sure i only need to pass the Regimen parameter which will be RegimenHTML
+ *                              COMPLETED - Need to add SEND button somewhere and make it conditional where it only exists if the route parameter exists
+ *                                      -button should only be pressable if all fields are filled minus additional notes
+ * 
+ * 
+ *                  COMPLETED - add download/save functionality
+ *                  IN PROGRESS - add view/edit functionality
+ *                  COMPLETED - add delete functionality, make sure to ask user if they are sure they want to delete the regimen and it cant be undone
+ *                  COMPLETED - figure out the parameters that will need to be passed to the component from RegimenMain
+ *                          - regimen index
+ *                          - anything else I can think of 
+ * 
+ *                  
+ *          
+ *          COMPLETED - commit everything once regimen creation complete is successful
+ *          COMPLETED- FIX 
+ *             RESOLVED/COMPLETED -regimen count not incrementing/saving correctly
+ *             RESOLVED/COMPLETED -bottom tabbar not displaying on return to RegimenMain from RegimenCreate
+ *          IN PROGRESS - Build out RegimenMain
+ *                  - display regimens as flatlist
+ *                  - render regimens as their own component much like entryflatlist
+ *                  - allow regimens to be viewed, edited, downloaded, and emailed
+ *          COMPLETED - Turn the email modal and logic in RegimenCreate into its own component to be reused in RegimenMain
+ *          
+ * 
+ *         
+ *
  * 
  * 
  * 
  *         
  * 
- * FUTURE:
- * - Go back to TextArea and work on it stylistic wise with new ios styling changes
+ *
  * 
  * 
  * COMPLETED - Build Create step component

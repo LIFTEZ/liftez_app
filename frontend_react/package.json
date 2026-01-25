@@ -25,6 +25,7 @@
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
     "react-native-element-dropdown": "^2.12.4",
+    "react-native-gesture-handler": "~2.28.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-logs": "^5.5.0",
     "react-native-radio-buttons-group": "^3.1.0",
