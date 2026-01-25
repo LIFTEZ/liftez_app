@@ -2,7 +2,7 @@ import { NavigationProp, RouteProp } from "@react-navigation/native"
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RegimenBuildParamList, RootStackParamList } from "@/src/types";
 import { CreateParams } from "@/src/types";
-import {ScrollView,View, Pressable, Text, StyleSheet, TextInput,Animated,Modal,Alert} from 'react-native'
+import {ScrollView,View, Pressable, Text, StyleSheet, TextInput,Animated,Modal,Alert, FlatList} from 'react-native'
 import { useEffect, useState, useRef } from "react";
 import { useTheme } from "@/src/ThemeContext";
 import BuilderCheckbox from "./BuilderCheckbox";
@@ -1250,7 +1250,7 @@ const RegimenBuild = ({params,navigation, route}: RegimenBuildProps) =>{
 
     const [filterValues, setFilterValues] = useState<string[]>([])
     //USING FOR ONBLUR TESTING
-    const [filterFinal, setFilterFinal] = useState<string[]>([])
+    // const [filterFinal, setFilterFinal] = useState<string[]>([])
 
     // Debounced function (runs after typing stops)
     const handleTypingEnded = debounce((index: number) => {
@@ -1260,35 +1260,56 @@ const RegimenBuild = ({params,navigation, route}: RegimenBuildProps) =>{
         
     }, 1000); 
 
-    //ONBLUR FUNCTION TESTING
-    const submitFilterValue = (index:number)=>{
+ 
 
-        const text = filterValues[index]
-        // copy the array
-        const newArray = [...filterFinal];
-
-        // 2. Update the value at the specific index in the *new* array
-        newArray[index] = text;
-
-        // 3. Set the state with the new array
-        setFilterFinal(newArray);
-
+    interface ExerciseDataObj{
+        id:string
+        exercises:string[]
+        
     }
+
+  
+    //intialize data obj for flatlist render item
+    const[exerciseRenderItemData, setExerciseRenderItemData] = useState<ExerciseDataObj[]>([
+        {id:'0',exercises:['']}
+
+    ])
+
+    //exercise filter object
+    const[exerciseFilteredRenderItemData, setExerciseFilteredRenderItemData] = useState<ExerciseDataObj[]>([
+        {id:'0',exercises:['']}
+
+    ])
 
     const handleFilteredInput = (index:number, text:string)=>{
 
+        
+        //loop thru exercises
 
-        if(text == ''){
-            const text = filterValues[index]
-            // copy the array
-            const newArray = [...filterFinal];
+        const filteredExercises:string[] = []
 
-            // 2. Update the value at the specific index in the *new* array
-            newArray[index] = text;
+        exerciseRenderItemData.forEach((prop)=>{
 
-            // 3. Set the state with the new array
-            setFilterFinal(newArray);
-        }
+            if(prop.id == index.toString()){
+                prop.exercises.forEach((muscle)=>{
+                        
+                    if(muscle.includes(text.toLowerCase()) && !filteredExercises.includes(muscle)){
+                        filteredExercises.push(muscle)
+                    }
+                })
+            }
+
+        })
+
+        //update object prop at specific index
+        
+        // 1. Create a shallow copy of the array
+        const newFiltered = [...exerciseFilteredRenderItemData];
+
+        // 2. Update the value at the specific index in the *new* array
+        newFiltered[index].exercises = filteredExercises
+
+        setExerciseFilteredRenderItemData(newFiltered)
        
         const newEditting = [...isTextEditing]
         newEditting[index] = true
@@ -1310,12 +1331,78 @@ const RegimenBuild = ({params,navigation, route}: RegimenBuildProps) =>{
         
 
     }
+
+    const buildExerciseDataObj = (muscles:string[]) =>{
+        interface ExerciseDataObj{
+            id:string   
+            exercises:string[]
+               
+        }
+        const ExerciseObj:ExerciseDataObj[] = []
+
+        muscles.forEach((muscle,index) => {
+             ExerciseObj.push({id:index.toString(), exercises:exercises[muscle]})
+ 
+        })
+        setExerciseRenderItemData(ExerciseObj)
+    }
+
+    const buildExerciseFilteredDataObj = (muscles:string[]) =>{
+        interface ExerciseDataObj{
+            id:string   
+            exercises:string[]
+               
+        }
+        const ExerciseObj:ExerciseDataObj[] = []
+
+        muscles.forEach((muscle,index) => {
+             ExerciseObj.push({id:index.toString(), exercises:exercises[muscle]}) 
+        })
+        setExerciseFilteredRenderItemData(ExerciseObj)
+    }
+
+
+    interface Data{
+        id:string
+        exercises:string[]
+        
+    }
+
+
+    //flat list render item function
+    const renderItem = (index:number) => ({item:muscleGroup}:{item:Data}) =>{
+        
+        return(
+            <View key={index}>
+            {index.toString() == muscleGroup.id?
+                <View className="flex flex-row justify-between items-center p-2">
+                <FlatList
+                data={exerciseFilteredRenderItemData[index].exercises}
+                scrollEventThrottle={16}
+                keyExtractor={(exercise, exIndex) => `${muscleGroup.id}-${exercise}-${exIndex}`} // Unique key: Combine group id + exercise + index for safety
+                renderItem={({ item: exercise, index:esIndex}) => (
+                    <View className="flex flex-row justify-between items-center p-2 w-full"> 
+                    <Text style={{color:themeType.textPrimary}}>{exercise}</Text>
+                    <BuilderCheckbox onDataReceived={handleChildData} exercise={exercise} exerciseIndex={exercises[muscles![index]]?.indexOf(exercise)} muscle={muscles![index]} index={index} checkboxIndex={esIndex} filter={filterValues[index]} filterStatus={isTextEditing[index]}
+                    statusFromArray={selectedExercisesArr[index]?.status[esIndex]} exerciseFromArray={selectedExercisesArr[index]?.exercise[esIndex]} filteredExerciseStatus={selectedExercisesArr[index]?.status[exercises[muscles![index]]?.indexOf(exercise)]}/>
+                    </View>
+                    )}
+                />
+                </View>
+            :null}
+            </View>
+        )
+    }
+
+
     // Fill the array with empty strings based on length of regimen for filter feature purposes
     useEffect(() => {
         if (muscles) {
+          buildExerciseDataObj(muscles) //original set of exercises
+          buildExerciseFilteredDataObj(muscles) //copy for filter purposes
           setFilterValues(new Array(muscles.length).fill(''));
-          //using for onblur testing
-          setFilterFinal(new Array(muscles.length).fill(''));
+        //   //using for onblur testing
+        //   setFilterFinal(new Array(muscles.length).fill(''));
           setIsTextEditing(new Array(muscles.length).fill(false));
         }
       }, [muscles?.length]); // Re-run if number of muscle groups changes
@@ -1644,46 +1731,14 @@ const RegimenBuild = ({params,navigation, route}: RegimenBuildProps) =>{
                                 inputMode='text' 
                                 placeholder="filter by exercise name"
                                 />
-                        
-                                {filterValues[index] == ''?
-                                <View>
-                            
-                                    {exercises[muscle]?.map((exercise, index2) => (
-                                        <View key={index2}>
-                                            {/* MIGHT HAVE TO CONVERT TO FLATLIST TO APPLY SCROLLING WITHIN THIS LIST */}
-                                            {/* <ScrollView> */}
-                                                <View className="flex flex-row justify-between items-center p-2">
-                                                <Text style={{color:themeType.textPrimary}}> {exercise}</Text>
-                                                {/* CHECKBOX COMPONENT THAT TAKES PROP OF EXERCISE */}
-                                                <BuilderCheckbox onDataReceived={handleChildData} exercise={exercise} exerciseIndex={exercises[muscle]?.indexOf(exercise)} muscle={muscle} index={index} checkboxIndex={index2} filter={filterValues[index]} filterStatus={isTextEditing[index]}
-                                                statusFromArray={selectedExercisesArr[index]?.status[index2]} exerciseFromArray={selectedExercisesArr[index]?.exercise[index2]} filteredExerciseStatus={selectedExercisesArr[index]?.status[exercises[muscle]?.indexOf(exercise)]}/>
-                                                </View>
-                                            {/* </ScrollView> */}
-                                        
-                                        </View>
-                                    ))}
-                                </View>:
-                                
-                                <View>
-                                    {/* choose value you want to filter and then the operation thats how filter() works */}
-                                    {/* FILTER DOES NOT SAVE THE CHECKED STATE OF THE CHECKBOXES FOR SOME REASON */}
-                                    {exercises[muscle]?.filter((exercise) => exercise.includes(filterValues[index]?.toLowerCase())).map((exercise, index2) => (
-                                        <View key={index2}>
-                                            {/* <ScrollView className="h-[50%]"> */}
-                                                <View className="flex flex-row justify-between items-center p-2">
-                                                <Text style={{color:themeType.textPrimary}}> {exercise}</Text>
-                                                {/* CHECKBOX COMPONENT THAT TAKES PROP OF EXERCISE */}
-                                                <BuilderCheckbox onDataReceived={handleChildData} exercise={exercise} exerciseIndex={exercises[muscle]?.indexOf(exercise)} muscle={muscle} index={index} checkboxIndex={index2} filter={filterValues[index]} filterStatus={isTextEditing[index]}
-                                                statusFromArray={selectedExercisesArr[index]?.status[index2]} exerciseFromArray={selectedExercisesArr[index]?.exercise[index2]} filteredExerciseStatus={selectedExercisesArr[index]?.status[exercises[muscle]?.indexOf(exercise)]}/>
-                                                </View>
-                                            {/* </ScrollView> */}
-                                        
-                                        </View>
-                                    ))}
-
+                                <View style={{height:300}}>
+                                <FlatList
+                                data={exerciseRenderItemData}
+                                renderItem={renderItem(index)}
+                                keyExtractor={(item) => item.id}
+                                />
                                 </View>
-                                //END FILTER LOGIC
-                                } 
+                             
                                 </>) //END IS NOT COLLAPSED LOGIC
                             //END COLLAPSED CHECK AND LOGIC
                             }  
