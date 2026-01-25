@@ -1700,9 +1700,9 @@ const RegimenBuild = ({params,navigation, route}: RegimenBuildProps) =>{
 
             
                 </ScrollView>
-            <View className="">
+            <View className="flex justify-end mt-6">
             <Animated.View
-                className='mt-4'
+                className='mt-2'
                 style={{opacity:fadeAnim}}
                 >
                 <BuilderButton title="CREATE" buildParams={CreatePassParams()} childRoute="RegimenCreate" navigation={navigation}  />

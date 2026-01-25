@@ -1,15 +1,18 @@
 import React, { useEffect,useState,useRef, useLayoutEffect } from 'react';
 import {View, Text, TextInput,Button, TouchableOpacity, GestureResponderEvent, Keyboard, KeyboardEvent, StyleSheet, Dimensions, ScrollView, 
 InputAccessoryView, PointerEvent, TouchableWithoutFeedback, InteractionManager,
-Alert} from 'react-native'
+Alert, Modal, Animated, Easing, Pressable} from 'react-native'
+import { Checkbox } from 'expo-checkbox';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { MaterialIcons } from '@expo/vector-icons';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import {Route, useNavigation} from '@react-navigation/native'
 import { useTheme } from '@/src/ThemeContext';
 import log from '@/src/utils/Logger'; 
+import { transform } from 'lodash';
 
 
 
@@ -315,6 +318,27 @@ const{theme, themeType} = useTheme()
     //     }
     // };
 
+      //NEW FEATURE NOTIF
+
+      const comingSoon = (feature:string)=>{
+        Alert.alert(            
+          `FEATURE:${feature}`,
+          "COMING SOON!",
+          [
+              {
+                  text: "OK",
+                  onPress: () =>{    
+                    
+                      return
+                  },
+                  style:'default'
+              },
+            
+          ]
+        )
+
+      }
+
     /** INPUTACCESSORYVIEW FUNCTIONS /////////////////////////////////////////////////////
      * 
      * 
@@ -502,6 +526,153 @@ const{theme, themeType} = useTheme()
 
     },[inputValue])
 
+
+    const[wasTextTipSeen, setWasTextTipSeen] = useState<boolean>(false)
+    const[showTip, setShowTip] = useState<boolean>(true) //set this to default of true unless asyncstorage key exists where user chose to not see the tip again
+    const[isTipModalVisible, setIsTipModalVisible] = useState<boolean>(false)
+    const shakeAnimation = useRef(new Animated.Value(0)).current;
+    const[isShaking,setIsShaking] = useState<boolean>(false)
+    const animationRef = useRef<Animated.CompositeAnimation | null>(null);
+    const[isChecked, setIsChecked] = useState<boolean>(false)
+
+    // Make it so position resets each time to normal
+    // Also only run as long as the Tip hasn't been seen
+    const animateTipNotif = async () =>{
+      
+      const startLoop = (ms:number, result:boolean): Promise<boolean> =>{
+        return new Promise((resolve) =>{
+          setTimeout(()=>{
+            resolve(result)
+          },ms)
+        })
+      } 
+        const shakeSequence = Animated.sequence([
+          Animated.timing(shakeAnimation, { toValue: 3, duration: 300, easing: Easing.linear, useNativeDriver: true }),
+          Animated.timing(shakeAnimation, { toValue: -3, duration: 300, easing: Easing.linear, useNativeDriver: true }),
+          Animated.timing(shakeAnimation, { toValue: 0, duration: 100, easing: Easing.linear, useNativeDriver: true }),
+          
+        ]);
+
+        const loop = Animated.loop(shakeSequence);
+        animationRef.current = loop
+        
+      if( await startLoop(5000,true)){
+        console.log('starting shaking')
+      setIsShaking(true)
+      loop.start((done) =>{
+
+        if(done){
+          
+        }
+      });
+      }
+  
+      const stopLoop = (ms:number, result:boolean): Promise<boolean> => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(result);
+          }, ms);
+        })
+
+      }
+
+      const loopStopped = await stopLoop (3000, true)
+
+      if(loopStopped){
+        setTimeout(async ()=>{
+          console.log('shaking set to false')
+          loop.stop()
+          setIsShaking(false)
+        },3000)
+      }
+      
+      
+
+
+    }
+
+    const animatedStyle = {
+      transform: [
+        // {translateX: shakeAnimation.interpolate({
+        //   inputRange: [-3, 3],
+        //   outputRange: [-1, 1],
+        // })},
+        //input range must be min and max of the values set in the sequence
+        //output range can be whatever I want
+        {translateX:shakeAnimation.interpolate({
+          inputRange: [-3, 3],
+          outputRange: [-3, 3],
+        })},
+          {rotate: shakeAnimation.interpolate({
+          inputRange: [-3, 3],
+          outputRange: ['-10deg', '10deg'],
+        })},
+          {scale: shakeAnimation.interpolate({
+          inputRange: [-3, 3],
+          outputRange: [.8,1.5],
+        })},
+        
+      ],
+      
+    }
+
+    //user selects the checkbox option to not show tip icon and modal anymore
+    const neverShowTip = async() =>{
+
+        const key:string = 'disable_tip'
+        await AsyncStorage.setItem(key, 'true')
+        setShowTip(false)
+    }
+
+    //get the storage key
+    const checkTip = async()=>{
+
+       const key:string = "disable_tip"
+
+       const value = await AsyncStorage.getItem(key)
+
+       if(value){
+        setShowTip(false)
+       }
+       else{
+        return
+       }
+
+    }
+    //dev //run once to get Tip icon and modal to display again
+    // const removeTipkey = async () =>{
+    //   await AsyncStorage.removeItem('disable_tip')
+    // }
+   
+    // useEffect(()=>{
+      
+    //   removeTipkey()
+     
+    // })
+
+    //check if tip icon should be shown, set in production
+    // useEffect(()=>{
+    //     checkTip()
+    // },[])
+
+    useEffect(()=>{
+      if(!isTipModalVisible && !isShaking && !wasTextTipSeen && showTip){
+        
+          animateTipNotif()
+        
+      
+      }
+    
+
+    },[isShaking])
+
+    //check if tip has been checked
+    useEffect(()=>{
+
+
+    },[wasTextTipSeen])
+
+
 // CONDITIONAL RENDERING FOR NAVIGATOR HEADER
 useLayoutEffect(() => {
     setTimeout(()=>{
@@ -517,53 +688,66 @@ useLayoutEffect(() => {
                   <View className='flex flex-row justify-center items-center'>
                     {/* FUTURE IMPLEMENTATION EMAIL THE INPUT */}
                     <View className='pl-4 pr-2'>
-                      <TouchableOpacity onPress={() => console.log('this is pressed')}>
+                      <TouchableOpacity onPress={() => [console.log('this is pressed') , comingSoon('Automatic Scheduled Emails!')]}>
                         <MaterialIcons name="schedule" size={24} color={themeType.textPrimary} />
                       </TouchableOpacity>
                     </View>
                     <View className='pl-2 pr-2 mt-1'>
-                      <TouchableOpacity>
+                      <TouchableOpacity onPress={()=> comingSoon('Emailing!')}>
                         <MaterialIcons name="attach-email" size={24} color={themeType.textPrimary} />
                       </TouchableOpacity>
                     </View>
-                    <View className='pl-2 pr-4'>
-                      <TouchableOpacity onPress={() => console.log('settings pressed, manage macros')}>
+                    <View className='pl-2 pr-2'>
+                      <TouchableOpacity onPress={() => [console.log('settings pressed, manage macros'), comingSoon('Text Macros!')]}>
                         <MaterialIcons name="settings" size={24} color={themeType.textPrimary} />
                       </TouchableOpacity>
                     </View>
+                    {showTip?
+                    !wasTextTipSeen?
+                    <View className=' pr-4'>
+                      <Animated.View
+                        style={[animatedStyle]}
+                        >
+                      <TouchableOpacity onPress={() => [setIsTipModalVisible(true), animationRef.current?.stop()]}>
+                        
+                        <AntDesign name="exclamation" size={24} color='lime' />
+                        
+                       
+                      </TouchableOpacity>
+                      </Animated.View>
+                    </View>
+                    :null
+                    :null}
                   </View>
                 </View>
               );
             }
             return null; 
           },
-            headerRight: () => (
-                <View className='flex'>
+          headerRight:() =>{
+            if(inputValue.length > 0 && !isVisible){
+              return(
+                  <View className='flex'>
                     <View className='flex flex-row'>
-                    
-                        {inputValue.length > 0 && !isVisible?
-                        (<>
-                        {/* FUTURE IMPLEMENTATION EMAIL THE INPUT */}
-                        
-                         
                         <TouchableOpacity className='pl-2 pr-2' onPress={onReset}>
                         <Text className='text-xl ' style={{color:themeType.textPrimary}}>Clear</Text>
                         </TouchableOpacity>
-                        </>):null}
-                       
-                        
-                    { isVisible ? 
-                    <TouchableOpacity className='' onPress={onPress}>
-                        <Text style={{color:'#00bc7d'}}className='text-xl pl-2 pr-2'>Done</Text>
-                    </TouchableOpacity> : null
-                    }
-                    </View>
-                </View>
-            ),
-            
+                  </View>
+                  </View>
+              )
+            }
+            if(isVisible){
+              return(
+                <TouchableOpacity className='' onPress={onPress}>
+                  <Text style={{color:'#00bc7d'}}className='text-xl pl-2 pr-2'>Done</Text>
+                  </TouchableOpacity>
+              )
+            }  
+            return null
+          }  
         });
     },300)
-}, [isVisible, navigation, inputValue]); // Re-run when isVisible changes
+}, [isVisible, navigation, inputValue, wasTextTipSeen, showTip]); // Re-run when isVisible changes
 
  
 
@@ -612,13 +796,16 @@ useLayoutEffect(() => {
                             {isFocused?
                                 <InputAccessoryView nativeID={inputAccessoryViewID}>
                                 
-                                <View className='flex flex-row h-12  justify-center items-center bg-slate-800/50'>
-                                    <TouchableOpacity  onPress={incrementFontSize}>
+                                <View className='flex flex-row h-12  justify-center items-center bg-slate-800/50 rounded-lg mb-2'>
+                                <Text>
+                                COMING SOON: Macros not available yet!
+                              </Text>
+                                    {/* <TouchableOpacity  onPress={incrementFontSize}>
                                         <MaterialCommunityIcons name="format-font-size-increase" className='mr-10' size={32} color="#0bfc03" />
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={decrementFontSize}>
                                         <MaterialCommunityIcons name="format-font-size-decrease" className='' size={32} color="#fc0303" />
-                                    </TouchableOpacity>
+                                    </TouchableOpacity> */}
                                 </View>
                             </InputAccessoryView> 
                             :null}
@@ -646,13 +833,16 @@ useLayoutEffect(() => {
                             //   }
                             />
                             <InputAccessoryView nativeID={inputAccessoryViewID}>
-                            <View className='flex flex-row h-12  justify-center items-center bg-slate-800/50'>
-                                <TouchableOpacity  onPress={incrementFontSize}>
+                            <View className='flex flex-row h-12  justify-center items-center bg-slate-800/50 rounded-lg mb-2'>
+                              <Text>
+                                COMING SOON: Macros not available yet!
+                              </Text>
+                                {/* <TouchableOpacity  onPress={incrementFontSize}>
                                     <MaterialCommunityIcons name="format-font-size-increase" className='mr-10' size={32} color="#0bfc03" />
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={decrementFontSize}>
                                     <MaterialCommunityIcons name="format-font-size-decrease" className='' size={32} color="#fc0303" />
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                             </View>
                             </InputAccessoryView> 
                             </>)  
@@ -663,9 +853,57 @@ useLayoutEffect(() => {
                 
                 </KeyboardAwareScrollView>
             </View>
-                    
+                        
+                  {/* TIP MODAL */}
+                  <View>
+                      <Modal
+                      visible={isTipModalVisible}
+                      transparent={true}
+                      animationType='fade'
+                      
+                      >
+                        <View style={styles.centeredView}>
+                          <View style={[styles.modalView,{width:'85%', backgroundColor:'#c7c7c7'}]} className='h-[25%]'>
+                            <View>
+                              <View className='flex flex-row justify-center'>
+                              <Text style={styles.modalTitle}>
+                                HIDDEN FEATURE
+                              </Text>
+                              <Text className='ml-2' style={{color:'lime', marginTop:-10, fontSize:36,transform:[{rotate:'10deg'}]}}>!</Text>
+                              </View>
+                            <Text style={styles.modalText}>While typing use @ followed by a space to automatically create a current time stamp in hour and minutes </Text>
+                          
+                          
+                            </View>
+                              <View className='flex w-full justify-start mb-2'>
+                                  <View className='flex flex-row items-center'>
+                                  <Checkbox
+                                    style={styles.checkbox}
+                                    value={isChecked ?? undefined}
+                                    onValueChange={setIsChecked}
+                                    color={isChecked ? '#00bc7d' : undefined}
+                                  />
+                                  <Text style={{fontWeight:500}}>Don't show this tip again</Text>
+                                  </View>
+                                </View>
+                                <TouchableOpacity onPress={()=>[setIsTipModalVisible(false), setWasTextTipSeen(true), isChecked?neverShowTip():null]} className='border-1  w-full p-4' style={{borderRadius:20, backgroundColor:'#949494'}}>
+                                {/* CHECKBOX */}
+                               
+                                <Text  className='text-center' style={{fontSize:18, fontWeight:500}}>
+                                  OK
+                                </Text>
+                                </TouchableOpacity>
+                           
+                          </View>
+                        </View>
+                         
+                      
+                      </Modal>
+
+                </View>
             
         </View>
+        
     )
 }
 
@@ -685,5 +923,40 @@ const styles = StyleSheet.create({
     },
     inputAccessory:{
         backgroundColor:'green'
+    },
+    checkbox: {
+      margin: 4,
+      padding:8,
+    },
+    //MODAL STYLES
+    centeredView: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor:'transparent'
+    },
+    modalView: {
+      margin: 20,
+      borderRadius: 30,
+      padding: 20,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    modalTitle: {
+      marginBottom: 15,
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontSize: 24,
+    },
+    modalText: {
+      marginBottom: 15,
+      textAlign: 'center',
     }
   });

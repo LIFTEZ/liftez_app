@@ -969,7 +969,7 @@ const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             </View>
             
         
-            <View className='flex w-full justify-center items-center mt-4 pb-48'>
+            <View className='flex w-full justify-center items-center mt-4' style={{paddingBottom:210}}>
             {newItemCount == 0 ?
                 <Text style={{color:themeType.textPrimary}}>No Entries to list</Text>:(<>
                     {/* FLATLIST OF ITEMS */}
@@ -980,9 +980,9 @@ const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
                         data={items}
                         renderItem={renderItem}
                         keyExtractor={item => item.id}
-                        className='w-full h-[85%] pb-20'
+                        className='w-full h-[85%] '
                         getItemLayout={(items, newItemCount) => ({length: height, offset: height * newItemCount, index: newItemCount})}
-                        
+
                         
                     
                     />
