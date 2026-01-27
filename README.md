@@ -1,5 +1,5 @@
 # /Privacy Policy
-Liftez App only uses user info, email and name, for the purpose and sending/sharing logging entries or regimens via email that are created within the app in HTML email format with a PDF attachment of that email content. We do <b>NOT</b> collect or store personal data for any other purpose at this time.
+Liftez App only uses user info, email and name, for the purpose and sending/sharing logging entries or regimens via email that are created within the app in HTML email format with a PDF attachment of that email content. We do <b>NOT</b> collect or store personal data for any other purpose at this time. No cookies are collected or required for any functional components of the app.
 
 # /Tech Stack
 <ul>
