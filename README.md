@@ -4,15 +4,13 @@ Liftez App only uses user info for the purpose and sending/sharing regimens via 
 # --Tech Stack--
  Expo Go/React Native
  Typescript
- Django Restframework (possibly)
-
-# --Goals--
- Develop another React Native App with more direction and complete it.  
- Create a better way for me to log and track my meals than using the iphone notes app
+ Terraform/AWS
 
 # --App features/implementations--
- 1. Open text like any text editor
+ 1. Organized list of text editor with filtering feature
  2. Add/remove/edit entries, each entry opens a text editor
- 3. Store entries locally on my iPhone or backend sorted by date
- 4. Entries allow for lists, descriptions, titles, goal setting, etc much like a jira sprint
- 5. Offload the app so it can be used offline at any given moment
+ 3. Store entries locally on your device or share with others via email using a scheduled job (coming soon)
+ 4. Build your own workout regimen and download as PDF locally to device with option to send/share via email* upon creation
+ 5. Store created regimens locally in device in a flatlist which allows the user to download locally, share via email, and or edit
+
+*EMAIL SERVICE SES CURRENTLY IN SANDBOX MODE, ALL EMAILS WILL GO TO A SINGLE VALIDATED IDENTITY, USER WILL NOT BE ABLE TO VIEW OR RECEIVE THE EMAIL AT THIS TIME BUT IT WILL NOT CAUSE APP CRASHES OR ANY ERRORS IN FORM PROCESSING*
