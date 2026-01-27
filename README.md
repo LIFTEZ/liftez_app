@@ -6,7 +6,7 @@
  Django Restframework (possibly)
 
 # --Goals--
- Develop another React Native App with more direction and complete it
+ Develop another React Native App with more direction and complete it.  
  Create a better way for me to log and track my meals than using the iphone notes app
 
 # --App features/implementations--
