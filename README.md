@@ -1,13 +1,13 @@
-# --Privacy Policy--
+# /Privacy Policy
 Liftez App only uses user info for the purpose and sending/sharing regimens via email that are created within the app in HTML email format with a PDF attachment of that email content. We do not collect or store personal data for any other purpose at this time.
 
-# --Tech Stack--
+# /Tech Stack
  Expo Go/React Native
  Typescript
  Terraform/AWS
 
-# --App features/implementations--
- 1. Organized list of text editor with filtering feature
+# /App features
+ 1. Organized list of individual text editors with filtering feature
  2. Add/remove/edit entries, each entry opens a text editor
  3. Store entries locally on your device or share with others via email using a scheduled job (coming soon)
  4. Build your own workout regimen and download as PDF locally to device with option to send/share via email* upon creation
