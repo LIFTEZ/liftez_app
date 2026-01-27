@@ -1,4 +1,5 @@
-# LIFTEZ_APP
+# --Privacy Policy--
+Liftez App only uses user info for the purpose and sending/sharing regimens via email that are created within the app in HTML email format with a PDF attachment of that email content.
 
 # --Tech Stack--
  Expo Go/React Native
