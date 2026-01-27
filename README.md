@@ -13,4 +13,4 @@ Liftez App only uses user info for the purpose and sending/sharing regimens via 
  4. Build your own workout regimen and download as PDF locally to device with option to send/share via email* upon creation
  5. Store created regimens locally in device in a flatlist which allows the user to download locally, share via email, and or edit
 
-*EMAIL SERVICE SES CURRENTLY IN SANDBOX MODE, ALL EMAILS WILL GO TO A SINGLE VALIDATED IDENTITY, USER WILL NOT BE ABLE TO VIEW OR RECEIVE THE EMAIL AT THIS TIME BUT IT WILL NOT CAUSE APP CRASHES OR ANY ERRORS IN FORM PROCESSING*
+**EMAIL SERVICE SES CURRENTLY IN SANDBOX MODE, ALL EMAILS WILL GO TO A SINGLE VALIDATED IDENTITY, USER WILL NOT BE ABLE TO VIEW OR RECEIVE THE EMAIL AT THIS TIME BUT IT WILL NOT CAUSE APP CRASHES OR ANY ERRORS IN FORM PROCESSING*
