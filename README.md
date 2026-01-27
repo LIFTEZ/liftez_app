@@ -2,9 +2,11 @@
 Liftez App only uses user info for the purpose and sending/sharing regimens via email that are created within the app in HTML email format with a PDF attachment of that email content. We do not collect or store personal data for any other purpose at this time.
 
 # /Tech Stack
- Expo Go/React Native
- Typescript
- Terraform/AWS
+<ul>
+ <li>Expo Go/React Native</li>
+ <li>Typescript</li>
+ <li>Terraform/AWS</li>
+</ul>
 
 # /App features
  1. Organized list of individual text editors with filtering feature
