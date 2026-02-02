@@ -669,7 +669,7 @@ const{theme, themeType} = useTheme()
     //check if tip has been checked
     useEffect(()=>{
 
-
+      checkTip() //remove if want to see the tip still while in dev mode
     },[wasTextTipSeen])
 
 
@@ -863,7 +863,7 @@ useLayoutEffect(() => {
                       
                       >
                         <View style={styles.centeredView}>
-                          <View style={[styles.modalView,{width:'85%', backgroundColor:'#c7c7c7'}]} className='h-[25%]'>
+                          <View style={[styles.modalView,{width:'85%', backgroundColor:'#c7c7c7'}]} className='h-[30%]'>
                             <View>
                               <View className='flex flex-row justify-center'>
                               <Text style={styles.modalTitle}>
