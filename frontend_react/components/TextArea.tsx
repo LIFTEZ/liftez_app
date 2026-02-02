@@ -669,7 +669,7 @@ const{theme, themeType} = useTheme()
     //check if tip has been checked
     useEffect(()=>{
 
-      checkTip() //remove if want to see the tip still while in dev mode
+      checkTip() //remove to see the tip still while in dev mode even if checkbox is checked
     },[wasTextTipSeen])
 
 
@@ -886,7 +886,7 @@ useLayoutEffect(() => {
                                   <Text style={{fontWeight:500}}>Don't show this tip again</Text>
                                   </View>
                                 </View>
-                                <TouchableOpacity onPress={()=>[setIsTipModalVisible(false), setWasTextTipSeen(true), isChecked?neverShowTip():null]} className='border-1  w-full p-4' style={{borderRadius:20, backgroundColor:'#949494'}}>
+                                <TouchableOpacity onPress={()=>[setIsTipModalVisible(false), setWasTextTipSeen(true), isChecked?neverShowTip():null]} className='border-1  w-full p-4 mt-4' style={{borderRadius:20, backgroundColor:'#949494'}}>
                                 {/* CHECKBOX */}
                                
                                 <Text  className='text-center' style={{fontSize:18, fontWeight:500}}>
