@@ -1,16 +1,18 @@
-# MEALS_LOGGING_APP
+# /Privacy Policy
+Liftez App only uses user info, email and name, for the purpose and sending/sharing logging entries or regimens via email that are created within the app in HTML email format with a PDF attachment of that email content. We do <b>NOT</b> collect or store personal data for any other purpose at this time. No cookies are collected or required for any functional components of the app.
 
-# --Tech Stack--
-# Expo Go/React Native
-# Django Restframework (possibly)
+# /Tech Stack
+<ul>
+ <li>Expo Go/React Native</li>
+ <li>Typescript</li>
+ <li>Terraform/AWS</li>
+</ul>
 
-# --Goals--
-# Develop another React Native App with more direction and complete it
-# Create a better way for me to log and track my meals than using the iphone notes app
+# /App features
+ 1. Organized list of individual text editors with filtering feature
+ 2. Add/remove/edit entries, each entry opens a text editor
+ 3. Store entries locally on your device or share with others via email using a scheduled job (coming soon)
+ 4. Build your own workout regimen and download as PDF locally to device with option to send/share via email* upon creation
+ 5. Store created regimens locally in device in a flatlist which allows the user to download locally, share via email, and or edit
 
-# --App features/implementations--
-# 1. Open text like any text editor
-# 2. Add/remove/edit entries, each entry opens a text editor
-# 3. Store entries locally on my iPhone or backend sorted by date
-# 4. Entries allow for lists, descriptions, titles, goal setting, etc much like a jira sprint
-# 5. Offload the app so it can be used offline at any given moment
+**EMAIL SERVICE SES CURRENTLY IN SANDBOX MODE, ALL EMAILS WILL GO TO A SINGLE VALIDATED IDENTITY, USER WILL NOT BE ABLE TO VIEW OR RECEIVE THE EMAIL AT THIS TIME BUT IT WILL NOT CAUSE APP CRASHES OR ANY ERRORS IN FORM PROCESSING*
